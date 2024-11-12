@@ -18,7 +18,7 @@ def add_root(search_filename):
        The whole folder of the dataset called "Base dataset" from https://cmp.felk.cvut.cz/~tylecr1/facade/ has bo be located in the same folder as the code project 
     '''
     # Get the list of all files in the current directory
-    files_in_directory = os.listdir('./CMP_facade_DB_base/base/')
+    files_in_directory = os.listdir('./data/CMP_facade_DB_base/base/')
     
     # Filter only .xml files 
     xml_files = [f for f in files_in_directory if f.endswith('.xml')]
@@ -30,9 +30,9 @@ def add_root(search_filename):
         for file in matching_files:
             #print(file)
             #Add a root to the XML-file to be able to use the XML parser
-            with open(os.path.join('./CMP_facade_DB_base/base/{}'.format(file)), 'r') as f, open(os.path.join('./CMP_facade_DB_base/base/root{}'.format(file)), 'w') as g:
+            with open(os.path.join('./data/CMP_facade_DB_base/base//{}'.format(file)), 'r') as f, open(os.path.join('./data/CMP_facade_DB_base/base/{}'.format(file)), 'w') as g:
                 g.write('<root>{}</root>'.format(f.read()))
-            os.remove(os.path.join('./CMP_facade_DB_base/base/{}'.format(file)))
+            os.remove(os.path.join('./data/CMP_facade_DB_base/base/{}'.format(file)))
     else:
         print(f"All files contain the necessary root structure <root> ... </root> ")
 
