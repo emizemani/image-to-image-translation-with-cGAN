@@ -1,10 +1,11 @@
 training:
-  epochs: 100                      # Number of epochs
-  start_epoch: 1                   # Start epoch (useful for resuming training)
-  batch_size: 16                   # Batch size
-  learning_rate: 0.0002            # Learning rate for optimizer
-  beta1: 0.5                       # Adam optimizer beta1 parameter
-  lambda_L1: 100                   # L1 loss weight
+  batch_size: 16       # Example value
+  epochs: 100          # Example value
+  start_epoch: 1       # Example value
+  lambda_L1: 10.0      # Example value for L1 regularization weight
+  lr: 0.0002           # Learning rate for Adam optimizer
+  checkpoint_interval: 20  # How often to save checkpoints
+
 
 data:
   train_images_dir: "data/processed/train/images"
