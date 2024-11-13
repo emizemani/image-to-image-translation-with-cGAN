@@ -86,3 +86,6 @@ object_annotation_list.append(df)
 print (object_annotation_list[0])
 
 #next: change object_annotation_list to dictionary with filename as key
+
+#check
+print('check')
