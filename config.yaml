@@ -7,8 +7,10 @@ training:
   lambda_L1: 100                   # L1 loss weight
 
 data:
-  train_data_dir: "./data/train"   # Path to training data
-  val_data_dir: "./data/val"       # Path to validation data
+  train_images_dir: "data/processed/train/images"
+  train_labels_dir: "data/processed/train/labels"
+  val_images_dir: "data/processed/val/images"
+  val_labels_dir: "data/processed/val/labels"
 
 logging:
   log_interval: 10                 # Log frequency (in steps)
