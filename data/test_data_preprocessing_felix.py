@@ -6,7 +6,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms, utils
-import xml.etree.ElementTree as ET
+
+# Ignore warnings
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -36,8 +37,35 @@ def add_root(search_filename):
 
 add_root("root")  
 
+### parse XML Dataset - check where the data is stored
 
-#Parse XML file, create list of dataframes, one dataframe contains all annotations for one picture
+#https://docs.python.org/3/library/xml.etree.elementtree.html#xml.etree.ElementTree.TreeBuilder.data
+import xml.etree.ElementTree as ET
+tree = ET.parse('./data/CMP_facade_DB_base/base/rootcmp_b0002.xml')
+root = tree.getroot()
+
+print("x1:",root[0][0][0].text)
+print("x2:",root[0][0][1].text)
+print("y1:",root[0][0][2].text)
+print("y2:",root[0][0][3].text)
+print("label:",root[0][1].text)
+print("labelname:",root[0][2].text)
+print("flag:",root[0][3].text)
+
+print("second object in xml file:")
+print("x1:",root[1][0][0].text)
+print("x2:",root[1][0][1].text)
+print("y1:",root[1][0][2].text)
+print("y2:",root[1][0][3].text)
+print("label:",root[1][1].text)
+print("labelname:",root[1][2].text)
+print("flag:",root[1][3].text)
+
+
+print("root[0]:",root[0].text)
+object_count = len([f for f in root])
+print ("object count:")
+print(object_count)
 
 files_in_directory = os.listdir('./data/CMP_facade_DB_base/base/')
 xml_files = [f for f in files_in_directory if f.endswith('.xml')]
@@ -84,5 +112,3 @@ for filenumber, filename in enumerate(xml_files):
 object_annotation_list.append(df)
 
 print (object_annotation_list[0])
-
-#next: change object_annotation_list to dictionary with filename as key

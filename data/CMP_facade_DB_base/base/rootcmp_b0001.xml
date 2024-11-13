@@ -1,4 +1,5 @@
-<root><object>
+<root>
+<object>
 <points>
 <x>
 0.0068359
@@ -5797,4 +5798,5 @@ pillar
 <flag>
 1
 </flag>
-</object></root>
+</object>
+</root>
