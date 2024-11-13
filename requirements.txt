@@ -1,1 +1,4 @@
-git+https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix.git
+scikit-learn
+pillow
+torch
+torchvision
