@@ -62,7 +62,7 @@ def organize_and_preprocess(data_dir, processed_dir, split_ratios=(0.8, 0.1, 0.1
 
     print("Data preprocessing complete.")
 
-if __name__ == "__main__": e
+if __name__ == "__main__": 
     data_dir = "data"  # Directory containing the raw data
     processed_dir = os.path.join(data_dir, "processed")  # Output directory for processed data
     organize_and_preprocess(data_dir, processed_dir)
