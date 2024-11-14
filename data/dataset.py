@@ -18,7 +18,7 @@ class CustomDataset(Dataset):
         self.label_files = sorted(os.listdir(labels_dir))
         self.transform = transform if transform else transforms.ToTensor()  # Default to tensor transformation
 
-    def __len__(self):
+    def __len__(self): ### Overloading the len() operator, lets you make instances of your classes behave like familiar Python objects, even though they are custom data types
         return len(self.image_files)
 
     def __getitem__(self, idx):
@@ -37,3 +37,32 @@ class CustomDataset(Dataset):
 
         # Return a dictionary with both image and label
         return {"A": image, "B": label}
+
+
+### self parameter
+'''
+class Dog:
+    def __init__(self, name):
+        self.name = name  # Using 'self' to refer to the instance's attribute
+
+    def bark(self):
+        print(f"{self.name} says woof!")
+
+# Create an instance of Dog
+my_dog = Dog("Buddy")
+my_dog.bark()  # Output: Buddy says woof!
+
+
+Explanation
+__init__(self, name): The __init__ method is called when an instance of the class is created. 
+The self.name = name line uses self to set an attribute name on the instance. 
+Each Dog instance will have its own name attribute, distinct from other instances.
+Calling bark(): When my_dog.bark() is called, Python translates this to Dog.bark(my_dog). 
+The instance my_dog is automatically passed as self in the bark method, so self.name refers to my_dog.name, which is "Buddy".
+
+short:
+self is a reference to the instance on which a method is being called.
+It allows methods to access or modify the instances own attributes and other methods.
+self must always be the first parameter in instance methods, although you dont pass it explicitly when calling the method — Python handles it automatically.
+
+'''
