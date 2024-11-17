@@ -12,11 +12,18 @@ class ConditionalGANLoss(nn.Module):
             raise NotImplementedError(f"GAN mode '{gan_mode}' not implemented")
 
     def forward(self, prediction, target_is_real):
-        target = torch.ones_like(prediction) if target_is_real else torch.zeros_like(prediction)
-        loss = self.criterion(prediction, target)
+        # Ensure `prediction` is a tensor
+        if not isinstance(prediction, torch.Tensor):
+            raise TypeError("Prediction must be a tensor")
+
+        # Create a target tensor based on `target_is_real`
+        target_tensor = torch.ones_like(prediction) if target_is_real else torch.zeros_like(prediction)
+
+        # Compute the loss
+        loss = self.criterion(prediction, target_tensor)
         return loss
 
-class Pix2PixLosses:
+class GANLosses:
     def __init__(self, lambda_L1=100.0, gan_mode='vanilla'):
         self.lambda_L1 = lambda_L1
         self.gan_loss = ConditionalGANLoss(gan_mode=gan_mode)
