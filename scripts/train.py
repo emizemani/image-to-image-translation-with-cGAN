@@ -198,8 +198,8 @@ def main():
     # final checkpoint
     torch.save(generator.state_dict(), f"{config['logging']['checkpoint_dir']}/generator_latest.pth")
     torch.save(discriminator.state_dict(), f"{config['logging']['checkpoint_dir']}/discriminator_latest.pth")
-            torch.save(generator.state_dict(), f"{config['logging']['checkpoint_dir']}/generator_epoch_{epoch}.pth")
-            torch.save(discriminator.state_dict(), f"{config['logging']['checkpoint_dir']}/discriminator_epoch_{epoch}.pth")
+    torch.save(generator.state_dict(), f"{config['logging']['checkpoint_dir']}/generator_epoch_{epoch}.pth")
+    torch.save(discriminator.state_dict(), f"{config['logging']['checkpoint_dir']}/discriminator_epoch_{epoch}.pth")
 
     # final checkpoint
     torch.save(generator.state_dict(), f"{config['logging']['checkpoint_dir']}/generator_latest.pth")
