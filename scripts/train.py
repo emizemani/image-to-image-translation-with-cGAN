@@ -5,7 +5,8 @@ from torch.utils.data import DataLoader
 from torchvision import transforms
 import yaml
 from data.dataset import CustomDataset  # Ensure this path is correct
-from model import UNetGenerator, PatchGANDiscriminator
+#from model import UNetGenerator, PatchGANDiscriminator
+import model #then model.UNetGenerator etc.
 from utils.losses import GANLosses
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -58,7 +59,7 @@ def main():
     #training loop
     for epoch in range(config['training']['start_epoch'], config['training']['epochs'] + 1):
         print(f"Epoch {epoch}/{config['training']['epochs']}")
-        generator.train()
+        generator.train() #It is somewhat intuitive to expect train function to train model but it does not do that. It just sets the mode.
         discriminator.train()
 
         for i, data in enumerate(train_loader):
