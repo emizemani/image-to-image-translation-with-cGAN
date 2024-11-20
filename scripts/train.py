@@ -4,9 +4,10 @@ import torch
 from torch.utils.data import DataLoader
 from torchvision import transforms
 import yaml
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from data.dataset import CustomDataset  # Ensure this path is correct
-#from model import UNetGenerator, PatchGANDiscriminator
-import model #then model.UNetGenerator etc.
+from model import UNetGenerator, PatchGANDiscriminator
+#import model #then model.UNetGenerator etc.
 from utils.losses import GANLosses
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
