@@ -35,10 +35,10 @@ def show(image_label_pair=None, outfile=None, dataset=None):
 
 # Get images and associated labels from training dataset
 config = load_config()
-show_dataset = CustomDataset(
+dataset_to_show = CustomDataset(
     images_dir=config['data']['train_images_dir'],
     labels_dir=config['data']['train_labels_dir'])
 
 # Show pairs of images and associated labels
 images_to_show = [1,3,10,23]
-show(images_to_show,None,show_dataset)
+show(images_to_show,None,dataset_to_show)
