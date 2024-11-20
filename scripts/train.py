@@ -7,13 +7,9 @@ from torch.utils.data import DataLoader
 from torchvision import transforms
 from torchvision import transforms
 import yaml
-from data.dataset import CustomDataset  # Ensure this path is correct
-from model import UNetGenerator, PatchGANDiscriminator
-from utils.losses import GANLosses
-
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from data.dataset import CustomDataset  # Ensure this path is correct
-from model import UNetGenerator, PatchGANDiscriminator
+from scripts.model import UNetGenerator, PatchGANDiscriminator
 from utils.losses import GANLosses
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -208,3 +204,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
