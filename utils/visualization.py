@@ -8,15 +8,20 @@ import matplotlib.pyplot as plt
 from torchvision.utils import make_grid
 
 
-def show_samples(image_label_pair_1=1, image_label_pair_2=2):
+def show(image_label_pair=None, outfile=None):
 
     config = load_config()
 
     train_dataset = CustomDataset(
         images_dir=config['data']['train_images_dir'],
         labels_dir=config['data']['train_labels_dir'])
+    #Debug
+    #print(len(train_dataset))
     
-    batch = [train_dataset[image_label_pair_1]["A"], train_dataset[image_label_pair_1]["B"], train_dataset[image_label_pair_2]["A"], train_dataset[image_label_pair_2]["B"]]
+    batch=[]
+    for pair in image_label_pair:
+        batch.append(train_dataset[pair]["A"])
+        batch.append(train_dataset[pair]["B"])
 
     # Create a grid of images
     grid = make_grid(batch, nrow=2) 
@@ -27,11 +32,14 @@ def show_samples(image_label_pair_1=1, image_label_pair_2=2):
     plt.axis("off")
     plt.text(110,-10,"Image")
     plt.text(350,-10,"Label")
-    plt.show()
 
-    print(len(train_dataset))
-    
+    if outfile==None:
+        plt.show()
+    else:
+        plt.savefig('images_to_show.png')
+        
     return 
 
-# Show two pairs of images and associated labels
-show_samples(5,3)
+# Show pairs of images and associated labels
+images_to_show = [1,2,3,10,23]
+show(images_to_show)
