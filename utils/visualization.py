@@ -7,17 +7,13 @@ import torch
 import matplotlib.pyplot as plt
 from torchvision.utils import make_grid
 
-def show(image_label_pair=None, outfile=None, dataset=None):
+def show(image_label_pair, dataset, outfile=None, title_col_left="Image", title_col_right="Label"):
     '''dataset need to be instance from class CustomDataset'''
-    
-    #Debug
-    #print(len(train_dataset))
-    
-    batch=[]
+
+    batch = []
     for pair in image_label_pair:
         batch.append(dataset[pair]["A"])
         batch.append(dataset[pair]["B"])
-
     # Create a grid of images
     grid = make_grid(batch, nrow=2) 
 
@@ -25,8 +21,8 @@ def show(image_label_pair=None, outfile=None, dataset=None):
     grid_image = grid.permute(1, 2, 0)
     plt.imshow(grid_image)
     plt.axis("off")
-    plt.text(110,-10,"Image")
-    plt.text(350,-10,"Label")
+    plt.text(grid_image.size(dim=1)*0.25,-25,title_col_left,ha='center',va='center')
+    plt.text(grid_image.size(dim=1)*0.75,-25,title_col_right,ha='center',va='center')
 
     if outfile==None:
         plt.show()
@@ -43,4 +39,4 @@ dataset_to_show = CustomDataset(
 
 # Show pairs of images and associated labels
 images_to_show = [1,3,10,23]
-show(images_to_show,None,dataset_to_show)
+show(images_to_show, dataset_to_show)
