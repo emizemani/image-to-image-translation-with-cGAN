@@ -8,6 +8,8 @@ import matplotlib.pyplot as plt
 from torchvision.utils import make_grid
 
 def show(image_label_pair=None, outfile=None, dataset=None):
+    '''dataset need to be instance from class CustomDataset'''
+    
     #Debug
     #print(len(train_dataset))
     
