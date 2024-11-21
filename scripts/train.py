@@ -1,10 +1,7 @@
 import sys
 import os
-import sys
-import os
 import torch
 from torch.utils.data import DataLoader
-from torchvision import transforms
 from torchvision import transforms
 import yaml
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -15,7 +12,6 @@ from utils.losses import GANLosses
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 def load_config(config_path="config.yaml"):
-    """Loads configuration from a YAML file."""
     """Loads configuration from a YAML file."""
     with open(config_path, "r") as file:
         config = yaml.safe_load(file)
@@ -42,29 +38,9 @@ def main():
             transforms.ToTensor(),
         ])
     )
-    train_dataset = CustomDataset(
-        images_dir=config['data']['train_images_dir'],
-        labels_dir=config['data']['train_labels_dir'],
-        transform=transforms.Compose([
-            transforms.Resize((256, 256)),
-            transforms.ToTensor(),
-        ])
-    )
-    val_dataset = CustomDataset(
-        images_dir=config['data']['val_images_dir'],
-        labels_dir=config['data']['val_labels_dir'],
-        transform=transforms.Compose([
-            transforms.Resize((256, 256)),
-            transforms.ToTensor(),
-        ])
-    )
+
     train_loader = DataLoader(train_dataset, batch_size=config['training']['batch_size'], shuffle=True)
     #for later val_loader = DataLoader(val_dataset, batch_size=config['training']['batch_size'], shuffle=False)
-    #for later val_loader = DataLoader(val_dataset, batch_size=config['training']['batch_size'], shuffle=False)
-
-    # initialize generator and discriminator
-    generator = UNetGenerator()
-    discriminator = PatchGANDiscriminator()
 
     #set up device for training
     # initialize generator and discriminator
@@ -73,8 +49,6 @@ def main():
 
     #set up device for training
     device = torch.device("cuda" if config['device']['use_gpu'] and torch.cuda.is_available() else "cpu")
-    generator.to(device)
-    discriminator.to(device)
     generator.to(device)
     discriminator.to(device)
 
@@ -96,9 +70,6 @@ def main():
     #training loop
     for epoch in range(config['training']['start_epoch'], config['training']['epochs'] + 1):
         print(f"Epoch {epoch}/{config['training']['epochs']}")
-        generator.train()
-        discriminator.train()
-
         generator.train()
         discriminator.train()
 
@@ -185,7 +156,6 @@ def main():
                 print(f"Step [{i}/{len(train_loader)}]: Generator Loss - {loss_G.item()}, Discriminator Loss - {loss_D.item()}")
 
         #save model checkpoints
-        #save model checkpoints
         if epoch % config['logging']['checkpoint_interval'] == 0:
             print(f"Saving model at epoch {epoch}")
             torch.save(generator.state_dict(), f"{config['logging']['checkpoint_dir']}/generator_epoch_{epoch}.pth")
@@ -196,10 +166,6 @@ def main():
     torch.save(discriminator.state_dict(), f"{config['logging']['checkpoint_dir']}/discriminator_latest.pth")
     torch.save(generator.state_dict(), f"{config['logging']['checkpoint_dir']}/generator_epoch_{epoch}.pth")
     torch.save(discriminator.state_dict(), f"{config['logging']['checkpoint_dir']}/discriminator_epoch_{epoch}.pth")
-
-    # final checkpoint
-    torch.save(generator.state_dict(), f"{config['logging']['checkpoint_dir']}/generator_latest.pth")
-    torch.save(discriminator.state_dict(), f"{config['logging']['checkpoint_dir']}/discriminator_latest.pth")
     print("Training complete.")
 
 if __name__ == "__main__":
