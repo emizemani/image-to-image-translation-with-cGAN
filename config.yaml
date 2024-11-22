@@ -12,6 +12,7 @@ data:
   train_labels_dir: "data/processed/train/labels"
   val_images_dir: "data/processed/val/images"
   val_labels_dir: "data/processed/val/labels"
+  checkpoint_dir: "checkpoints/prototyp"
 
 logging:
   log_interval: 10                 # Log frequency (in steps)
