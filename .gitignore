@@ -1,6 +1,5 @@
 __pycache__/
 .DS_Store
 data/raw/
-checkpoints/
 pml.def
 pml.sif

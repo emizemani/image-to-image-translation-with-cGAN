@@ -12,11 +12,11 @@ data:
   train_labels_dir: "data/processed/train/labels"
   val_images_dir: "data/processed/val/images"
   val_labels_dir: "data/processed/val/labels"
-  checkpoint_dir: "checkpoints/prototyp"
 
 logging:
   log_interval: 10                 # Log frequency (in steps)
   checkpoint_interval: 5           # Frequency of saving model checkpoints
+  checkpoint_dir: "checkpoints/prototyp"
 
 device:
   use_gpu: true                    # Enable GPU usage if available
