@@ -6,7 +6,7 @@ from torch.utils.data import DataLoader
 from torchvision import transforms
 from utils.helper_functions import load_config
 from data.dataset import CustomDataset
-from scripts.model import UNetGenerator, PatchGANDiscriminator
+from src.model import UNetGenerator, PatchGANDiscriminator
 from utils.losses import GANLosses
 
 def train_model(config):

@@ -4,7 +4,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import torch
 from torch.utils.data import DataLoader
 from torchvision import transforms
-from scripts.model import UNetGenerator 
+from src.model import UNetGenerator 
 from data.dataset import CustomDataset
 from utils.helper_functions import load_config
 

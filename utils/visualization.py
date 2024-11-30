@@ -2,7 +2,7 @@ import os
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from data.dataset import CustomDataset 
-from scripts.train import load_config
+from src.train import load_config
 import torch
 import matplotlib.pyplot as plt
 from torchvision.utils import make_grid
