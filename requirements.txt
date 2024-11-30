@@ -9,3 +9,5 @@ scikit-learn
 pillow
 pyyaml
 scikit-image
+matplotlib
+seaborn

@@ -17,46 +17,6 @@ def pixel_accuracy(pred, target):
     total = target.numel()
     return correct / total
 
-def per_class_accuracy(pred, target, num_classes):
-    """
-    Calculate accuracy per class.
-    Args:
-        pred (torch.Tensor): Predicted tensor (shape: BxHxW or BxCxHxW).
-        target (torch.Tensor): Ground truth tensor (shape: BxHxW or BxCxHxW).
-        num_classes (int): Number of classes.
-    Returns:
-        dict: Per-class accuracy as a dictionary.
-    """
-    pred = pred.argmax(dim=1) if pred.ndim == 4 else pred
-    target = target.argmax(dim=1) if target.ndim == 4 else target
-    class_acc = {}
-    for cls in range(num_classes):
-        cls_mask = (target == cls)
-        correct = (pred[cls_mask] == cls).sum().item()
-        total = cls_mask.sum().item()
-        class_acc[cls] = correct / total if total > 0 else 0.0
-    return class_acc
-
-def iou(pred, target, num_classes):
-    """
-    Calculate Intersection over Union (IoU) for each class.
-    Args:
-        pred (torch.Tensor): Predicted tensor (shape: BxHxW or BxCxHxW).
-        target (torch.Tensor): Ground truth tensor (shape: BxHxW or BxCxHxW).
-        num_classes (int): Number of classes.
-    Returns:
-        dict: IoU for each class as a dictionary.
-    """
-    pred = pred.argmax(dim=1) if pred.ndim == 4 else pred
-    target = target.argmax(dim=1) if target.ndim == 4 else target
-    iou_scores = {}
-    for cls in range(num_classes):
-        pred_mask = (pred == cls)
-        target_mask = (target == cls)
-        intersection = (pred_mask & target_mask).sum().item()
-        union = (pred_mask | target_mask).sum().item()
-        iou_scores[cls] = intersection / union if union > 0 else 0.0
-    return iou_scores
 
 def structural_similarity(pred, target):
     """
@@ -77,6 +37,7 @@ def structural_similarity(pred, target):
         )
         ssim_scores.append(ssim_score)
     return np.mean(ssim_scores)
+
 
 def mean_squared_error(pred, target):
     """

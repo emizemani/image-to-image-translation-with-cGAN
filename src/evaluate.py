@@ -1,23 +1,22 @@
-from utils.metrics import pixel_accuracy, per_class_accuracy, iou, structural_similarity, mean_squared_error
+from utils.metrics import pixel_accuracy, structural_similarity, mean_squared_error
+import numpy as np
+from PIL import Image
 
-def evaluate_predictions(predictions, num_classes=3):
+
+def evaluate_predictions(predictions):
     """
     Evaluate predictions using various metrics.
     Args:
-        predictions (list): List of tuples (real_A, real_B, fake_B).
-                           - real_A: Input image (optional, not used here but could be).
-                           - real_B: Ground truth image/tensor.
-                           - fake_B: Predicted/generated image/tensor.
-        num_classes (int): Number of classes for classification/segmentation tasks.
+        predictions (list): List of tuples (real_B, fake_B).
+                            - real_B: Ground truth image/tensor.
+                            - fake_B: Predicted/generated image/tensor.
     Returns:
         dict: Evaluation metrics as a dictionary.
     """
     # Initialize accumulators for batch-wise metrics
     total_pixel_accuracy = 0
-    total_ssim = 0
-    total_mse = 0
-    total_iou = {cls: 0 for cls in range(num_classes)}
-    total_per_class_acc = {cls: 0 for cls in range(num_classes)}
+    total_ssim = []
+    total_mse = []
 
     num_samples = len(predictions)
 
@@ -28,34 +27,59 @@ def evaluate_predictions(predictions, num_classes=3):
 
         # Calculate individual metrics
         total_pixel_accuracy += pixel_accuracy(fake_B, real_B)
-        total_ssim += structural_similarity(fake_B, real_B)
-        total_mse += mean_squared_error(fake_B, real_B)
-
-        # IoU and per-class accuracy (only relevant for multi-class segmentation)
-        iou_scores = iou(fake_B, real_B, num_classes=num_classes)
-        per_class_acc = per_class_accuracy(fake_B, real_B, num_classes=num_classes)
-
-        for cls in range(num_classes):
-            total_iou[cls] += iou_scores[cls]
-            total_per_class_acc[cls] += per_class_acc[cls]
+        total_ssim.append(structural_similarity(fake_B, real_B))
+        total_mse.append(mean_squared_error(fake_B, real_B))
 
     # Normalize metrics by the number of samples
     avg_pixel_accuracy = total_pixel_accuracy / num_samples
-    avg_ssim = total_ssim / num_samples
-    avg_mse = total_mse / num_samples
-    avg_iou = {cls: total_iou[cls] / num_samples for cls in total_iou}
-    avg_per_class_acc = {cls: total_per_class_acc[cls] / num_samples for cls in total_per_class_acc}
+    avg_ssim = np.mean(total_ssim)
+    avg_mse = np.mean(total_mse)
 
     # Compile results into a dictionary
     results = {
         "Pixel Accuracy": avg_pixel_accuracy,
         "SSIM": avg_ssim,
         "MSE": avg_mse,
-        "IoU": avg_iou,
-        "Per-Class Accuracy": avg_per_class_acc,
+        "Sample SSIM Scores": total_ssim,  # For best/median/worst cases
     }
 
     return results
+
+
+def extract_best_median_worst(predictions, results, metric="SSIM"):
+    """
+    Extract the best, median, and worst test cases based on a given metric.
+    Args:
+        predictions (list): List of tuples (real_B, fake_B).
+                            - real_B: Ground truth image.
+                            - fake_B: Generated image.
+        results (dict): Dictionary of evaluation results containing per-sample metrics.
+        metric (str): The metric to rank the predictions (default: "SSIM").
+    Returns:
+        dict: Dictionary with best, median, and worst examples.
+    """
+    scores = results.get("Sample SSIM Scores", [])
+    if not scores:
+        raise ValueError(f"Metric '{metric}' scores not found in results.")
+
+    # Get indices of best, median, and worst scores
+    best_idx = np.argmax(scores)
+    worst_idx = np.argmin(scores)
+    median_idx = np.argsort(scores)[len(scores) // 2]
+
+    cases = {
+        "best": predictions[best_idx],
+        "median": predictions[median_idx],
+        "worst": predictions[worst_idx],
+    }
+
+    return {
+        case: (Image.fromarray((real_B.numpy().transpose(1, 2, 0) * 255).astype(np.uint8)),  # Convert to PIL Image
+               Image.fromarray((fake_B.numpy().transpose(1, 2, 0) * 255).astype(np.uint8)),
+               scores[idx])
+        for case, (real_B, fake_B, idx) in zip(cases.keys(), [(best_idx, best_idx, best_idx), (median_idx, median_idx, median_idx), (worst_idx, worst_idx, worst_idx)])
+    }
+
 
 def log_metrics(results, output_file="evaluation_results.txt"):
     """
@@ -67,10 +91,8 @@ def log_metrics(results, output_file="evaluation_results.txt"):
     with open(output_file, "w") as file:
         file.write("Evaluation Metrics:\n")
         for metric, value in results.items():
-            if isinstance(value, dict):  # For IoU and Per-Class Accuracy
-                file.write(f"{metric}:\n")
-                for cls, score in value.items():
-                    file.write(f"  Class {cls}: {score:.4f}\n")
+            if isinstance(value, list):  # For per-sample metrics
+                file.write(f"{metric}: List of {len(value)} values (not displayed here).\n")
             else:
                 file.write(f"{metric}: {value:.4f}\n")
     print(f"Metrics logged to {output_file}")
