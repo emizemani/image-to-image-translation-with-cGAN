@@ -10,8 +10,8 @@
 #SBATCH --error=logs/error_%j.log      # Save errors to a log file (unique ID: %j)
 
 # Load necessary modules (adjust to your cluster's setup)
-module load python/3.10                # 
-module load cuda/11.7                  # CUDA version (we need to ensure compatibility)
+# module load python/3.10                # 
+# module load cuda/11.8                  # CUDA version (we need to ensure compatibility)
 
 # Maybe activate Conda environment?
 source activate image_translation               
