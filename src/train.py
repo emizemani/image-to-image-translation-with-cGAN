@@ -8,6 +8,7 @@ from utils.helper_functions import load_config
 from data.dataset import CustomDataset
 from src.model import UNetGenerator, PatchGANDiscriminator
 from utils.losses import GANLosses
+from utils.early_stopping import EarlyStopping
 
 
 def train_model(config):
@@ -52,6 +53,16 @@ def train_model(config):
     # Initialize loss functions
     losses = GANLosses(lambda_L1=config['training']['lambda_L1'], gan_mode='vanilla')
 
+    # Get max_grad_norm from config
+    max_grad_norm = config['training'].get('max_grad_norm', 1.0)
+
+    # Initialize early stopping
+    early_stopping = EarlyStopping(
+        patience=config['training'].get('early_stopping_patience', 7),
+        min_delta=config['training'].get('early_stopping_min_delta', 0.0),
+        verbose=True
+    )
+
     # Training loop
     for epoch in range(config['training']['start_epoch'], config['training']['epochs'] + 1):
         print(f"Epoch {epoch}/{config['training']['epochs']}")
@@ -70,6 +81,7 @@ def train_model(config):
             pred_fake = discriminator(fake_B, real_A)
             loss_G = losses.generator_loss(pred_fake, real_B, fake_B)
             loss_G.backward()
+            torch.nn.utils.clip_grad_norm_(generator.parameters(), max_norm=max_grad_norm)
             optimizer_G.step()
 
             # --------------------------------
@@ -80,6 +92,7 @@ def train_model(config):
             pred_fake_detached = discriminator(fake_B.detach(), real_A)
             loss_D = losses.discriminator_loss(pred_real, pred_fake_detached)
             loss_D.backward()
+            torch.nn.utils.clip_grad_norm_(discriminator.parameters(), max_norm=max_grad_norm)
             optimizer_D.step()
 
             # Log losses at specified intervals
@@ -94,13 +107,21 @@ def train_model(config):
 
         # Validation phase
         if epoch % config['logging']['validation_interval'] == 0:
-            validate_model(generator, val_loader, device, losses)
+            val_loss = validate_model(generator, val_loader, device, losses)
+            
+            # Early stopping check
+            early_stopping(val_loss)
+            if early_stopping.early_stop:
+                print("Early stopping triggered")
+                break
 
     # Save the final model
     print("Saving final model...")
     torch.save(generator.state_dict(), f"{config['logging']['checkpoint_dir']}/generator_latest.pth")
     torch.save(discriminator.state_dict(), f"{config['logging']['checkpoint_dir']}/discriminator_latest.pth")
     print("Training complete.")
+    
+    return generator
 
 
 def validate_model(generator, val_loader, device, losses):
@@ -111,6 +132,8 @@ def validate_model(generator, val_loader, device, losses):
         val_loader (DataLoader): Validation data loader.
         device (torch.device): Device for computation.
         losses (GANLosses): Loss functions for evaluation.
+    Returns:
+        float: Average validation loss
     """
     generator.eval()
     total_loss = 0
@@ -123,6 +146,7 @@ def validate_model(generator, val_loader, device, losses):
 
     avg_loss = total_loss / len(val_loader)
     print(f"Validation Loss: {avg_loss:.4f}")
+    return avg_loss
 
 
 if __name__ == "__main__":

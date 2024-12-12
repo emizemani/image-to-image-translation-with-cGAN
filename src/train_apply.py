@@ -3,11 +3,14 @@ import sys
 import matplotlib.pyplot as plt
 import seaborn as sns
 import torch
+from model import UNetGenerator
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from train import train_model
 from test import test_model
 from evaluate import evaluate_predictions, log_metrics, extract_best_median_worst
 from utils.helper_functions import load_config
+import pandas as pd
+from torchvision import transforms
 
 
 def plot_generalization_error(metrics, output_dir):
@@ -23,7 +26,11 @@ def plot_generalization_error(metrics, output_dir):
             for value in values:
                 data.append({"Metric": metric, "Value": value})
 
-    sns.violinplot(data=data, x="Metric", y="Value")
+    # Convert list of dictionaries to DataFrame
+    df = pd.DataFrame(data)
+
+    # Create the plot using the DataFrame
+    sns.violinplot(data=df, x="Metric", y="Value")
     plt.title("Generalization Error Metrics")
     plt.savefig(os.path.join(output_dir, "generalization_error.png"))
     plt.close()
@@ -44,7 +51,7 @@ def train_apply():
     # Hyperparameter Tuning
     print("Starting hyperparameter tuning...")
     best_model_path = None
-    best_metric = float('-inf')  # Track the best SSIM score
+    best_metric = float('-inf')  # Track the best composite score
     learning_rates = [0.0001, 0.0002]
     batch_sizes = [16, 32]
 
@@ -55,12 +62,16 @@ def train_apply():
             config['training']['batch_size'] = batch_size
 
             # Train and Test
-            train_model(config)
+            generator = train_model(config)
             predictions = test_model(config)
 
             # Evaluate
-            results = evaluate_predictions(predictions, num_classes=config['data']['num_classes'])
-            log_metrics(results, output_file=os.path.join(checkpoint_dir, f"evaluation_results_lr{lr}_bs{batch_size}.txt"))
+            filtered_predictions = [(real_B, fake_B) for _, real_B, fake_B in predictions]
+            results = evaluate_predictions(filtered_predictions)
+            log_metrics(
+                results,
+                output_file=os.path.join(checkpoint_dir, f"evaluation_results_lr{lr}_bs{batch_size}.txt"),
+            )
 
             # Save the best model based on multiple metrics (e.g., SSIM, MSE)
             current_metric = results["SSIM"] - results["MSE"]  # Example composite metric
@@ -84,7 +95,10 @@ def train_apply():
         predictions = test_model(config)
 
         print("Evaluating the best model's predictions...")
-        results = evaluate_predictions(predictions, num_classes=config['data']['num_classes'])
+        # Extract only real_B and fake_B for evaluation
+        filtered_predictions = [(real_B, fake_B) for _, real_B, fake_B in predictions]
+        # Evaluate predictions
+        results = evaluate_predictions(filtered_predictions)
         log_metrics(results, output_file=os.path.join(checkpoint_dir, "best_model_evaluation_results.txt"))
 
         # Plot Generalization Error
@@ -93,10 +107,15 @@ def train_apply():
 
         # Showcase Test Cases
         print("Extracting best, median, and worst test cases...")
-        examples = extract_best_median_worst(predictions, results, metric="SSIM")
+        examples = extract_best_median_worst(predictions, results)
         for case, (real_B, fake_B, score) in examples.items():
-            real_B.save(os.path.join(checkpoint_dir, f"{case}_real.png"))
-            fake_B.save(os.path.join(checkpoint_dir, f"{case}_fake.png"))
+            # real_B and fake_B are currently 4D tensors (1, C, H, W)
+            # We should use squeeze() to remove the batch dimension since these are individual examples
+            real_img = transforms.ToPILImage()(real_B.squeeze(0))  # Remove batch dimension
+            fake_img = transforms.ToPILImage()(fake_B.squeeze(0))  # Remove batch dimension
+            
+            real_img.save(os.path.join(checkpoint_dir, f"{case}_real.png"))
+            fake_img.save(os.path.join(checkpoint_dir, f"{case}_fake.png"))
             print(f"{case.capitalize()} case saved with score: {score}")
     else:
         print("No valid model was found during hyperparameter tuning.")

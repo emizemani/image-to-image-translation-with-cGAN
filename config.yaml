@@ -5,17 +5,23 @@ training:
   lambda_L1: 10.0      # Example value for L1 regularization weight
   lr: 0.0002           # Learning rate for Adam optimizer
   checkpoint_interval: 20  # How often to save checkpoints
+  max_grad_norm: 1.0  # Add this line
+  early_stopping_patience: 7    # Add this line
+  early_stopping_min_delta: 0.0 # Add this line
 
 
 data:
   train_images_dir: "data/processed/train/images"
   train_labels_dir: "data/processed/train/labels"
+  test_images_dir: "data/processed/test/images"
+  test_labels_dir: "data/processed/test/labels"
   val_images_dir: "data/processed/val/images"
   val_labels_dir: "data/processed/val/labels"
 
 logging:
   log_interval: 10                 # Log frequency (in steps)
   checkpoint_interval: 5           # Frequency of saving model checkpoints
+  validation_interval: 1 
   checkpoint_dir: "checkpoints/prototyp"
 
 device:

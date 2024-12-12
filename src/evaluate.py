@@ -1,11 +1,10 @@
-from utils.metrics import pixel_accuracy, structural_similarity, mean_squared_error
+from utils.metrics import structural_similarity, mean_squared_error
 import numpy as np
 from PIL import Image
 
-
 def evaluate_predictions(predictions):
     """
-    Evaluate predictions using various metrics.
+    Evaluate predictions using SSIM and MSE.
     Args:
         predictions (list): List of tuples (real_B, fake_B).
                             - real_B: Ground truth image/tensor.
@@ -13,56 +12,37 @@ def evaluate_predictions(predictions):
     Returns:
         dict: Evaluation metrics as a dictionary.
     """
-    # Initialize accumulators for batch-wise metrics
-    total_pixel_accuracy = 0
     total_ssim = []
     total_mse = []
 
-    num_samples = len(predictions)
-
     for real_B, fake_B in predictions:
-        # Ensure tensors are on the CPU for evaluation
-        real_B = real_B.cpu()
-        fake_B = fake_B.cpu()
-
-        # Calculate individual metrics
-        total_pixel_accuracy += pixel_accuracy(fake_B, real_B)
         total_ssim.append(structural_similarity(fake_B, real_B))
         total_mse.append(mean_squared_error(fake_B, real_B))
 
-    # Normalize metrics by the number of samples
-    avg_pixel_accuracy = total_pixel_accuracy / num_samples
     avg_ssim = np.mean(total_ssim)
     avg_mse = np.mean(total_mse)
 
-    # Compile results into a dictionary
-    results = {
-        "Pixel Accuracy": avg_pixel_accuracy,
+    return {
         "SSIM": avg_ssim,
         "MSE": avg_mse,
-        "Sample SSIM Scores": total_ssim,  # For best/median/worst cases
+        "Sample SSIM Scores": total_ssim,  # For extracting best/median/worst cases
     }
 
-    return results
-
-
-def extract_best_median_worst(predictions, results, metric="SSIM"):
+def extract_best_median_worst(predictions, metrics):
     """
-    Extract the best, median, and worst test cases based on a given metric.
+    Extract the best, median, and worst test cases based on SSIM.
     Args:
         predictions (list): List of tuples (real_B, fake_B).
                             - real_B: Ground truth image.
                             - fake_B: Generated image.
-        results (dict): Dictionary of evaluation results containing per-sample metrics.
-        metric (str): The metric to rank the predictions (default: "SSIM").
+        metrics (dict): Dictionary of evaluation results containing per-sample SSIM scores.
     Returns:
         dict: Dictionary with best, median, and worst examples.
     """
-    scores = results.get("Sample SSIM Scores", [])
+    scores = metrics.get("Sample SSIM Scores", [])
     if not scores:
-        raise ValueError(f"Metric '{metric}' scores not found in results.")
+        raise ValueError("No SSIM scores found in metrics.")
 
-    # Get indices of best, median, and worst scores
     best_idx = np.argmax(scores)
     worst_idx = np.argmin(scores)
     median_idx = np.argsort(scores)[len(scores) // 2]
@@ -74,12 +54,9 @@ def extract_best_median_worst(predictions, results, metric="SSIM"):
     }
 
     return {
-        case: (Image.fromarray((real_B.numpy().transpose(1, 2, 0) * 255).astype(np.uint8)),  # Convert to PIL Image
-               Image.fromarray((fake_B.numpy().transpose(1, 2, 0) * 255).astype(np.uint8)),
-               scores[idx])
-        for case, (real_B, fake_B, idx) in zip(cases.keys(), [(best_idx, best_idx, best_idx), (median_idx, median_idx, median_idx), (worst_idx, worst_idx, worst_idx)])
+        case: (predictions[idx][0], predictions[idx][1], scores[idx])
+        for case, idx in zip(cases.keys(), [best_idx, median_idx, worst_idx])
     }
-
 
 def log_metrics(results, output_file="evaluation_results.txt"):
     """

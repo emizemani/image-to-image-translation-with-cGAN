@@ -33,7 +33,11 @@ def structural_similarity(pred, target):
     ssim_scores = []
     for i in range(batch_size):
         ssim_score = ssim(
-            pred[i], target[i], data_range=target[i].max() - target[i].min(), multichannel=True
+            pred[i], 
+            target[i], 
+            data_range=target[i].max() - target[i].min(),
+            channel_axis=-1,
+            win_size=3  # Using smallest possible window size
         )
         ssim_scores.append(ssim_score)
     return np.mean(ssim_scores)
