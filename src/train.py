@@ -2,6 +2,7 @@ import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import torch
+import torch.nn as nn
 from torch.utils.data import DataLoader
 from torchvision import transforms
 from utils.helper_functions import load_config
@@ -9,36 +10,40 @@ from data.dataset import CustomDataset
 from src.model import UNetGenerator, PatchGANDiscriminator
 from utils.losses import GANLosses
 from utils.early_stopping import EarlyStopping
+from torch.optim.lr_scheduler import ReduceLROnPlateau
+from utils.metrics import structural_similarity as calculate_ssim
+
 
 
 def train_model(config):
     """
     Train the generator and discriminator using the specified configuration.
     """
+    # Add at the start of your train_model function in train.py
+    torch.autograd.set_detect_anomaly(True)
+
     # Prepare datasets
     train_dataset = CustomDataset(
-        images_dir=config['data']['train_images_dir'],
-        labels_dir=config['data']['train_labels_dir'],
-        transform=transforms.Compose([
-            transforms.Resize((256, 256)),
-            transforms.ToTensor(),
-        ])
+    images_dir=config['data']['train_images_dir'],
+    labels_dir=config['data']['train_labels_dir'],
+    transform=None,
+    is_training=True
     )
 
     val_dataset = CustomDataset(
         images_dir=config['data']['val_images_dir'],
         labels_dir=config['data']['val_labels_dir'],
         transform=transforms.Compose([
-            transforms.Resize((256, 256)),
             transforms.ToTensor(),
-        ])
+        ]),
+        is_training=False
     )
 
     train_loader = DataLoader(train_dataset, batch_size=config['training']['batch_size'], shuffle=True)
     val_loader = DataLoader(val_dataset, batch_size=config['training']['batch_size'], shuffle=False)
 
     # Initialize generator and discriminator
-    generator = UNetGenerator()
+    generator = UNetGenerator(dropout_rate=0.5)
     discriminator = PatchGANDiscriminator()
 
     # Set up device for training
@@ -46,9 +51,13 @@ def train_model(config):
     generator.to(device)
     discriminator.to(device)
 
-    # Initialize optimizers
+    # Initialize optimizers and schedulers
     optimizer_G = torch.optim.Adam(generator.parameters(), lr=config['training']['lr'], betas=(0.5, 0.999))
     optimizer_D = torch.optim.Adam(discriminator.parameters(), lr=config['training']['lr'], betas=(0.5, 0.999))
+
+    # Initialize learning rate schedulers
+    scheduler_G = ReduceLROnPlateau(optimizer_G, mode='min', factor=0.5, patience=5, verbose=True)
+    scheduler_D = ReduceLROnPlateau(optimizer_D, mode='min', factor=0.5, patience=5, verbose=True)
 
     # Initialize loss functions
     losses = GANLosses(lambda_L1=config['training']['lambda_L1'], gan_mode='vanilla')
@@ -80,7 +89,7 @@ def train_model(config):
             fake_B = generator(real_A)
             pred_fake = discriminator(fake_B, real_A)
             loss_G = losses.generator_loss(pred_fake, real_B, fake_B)
-            loss_G.backward()
+            loss_G.backward(retain_graph=True)
             torch.nn.utils.clip_grad_norm_(generator.parameters(), max_norm=max_grad_norm)
             optimizer_G.step()
 
@@ -88,9 +97,17 @@ def train_model(config):
             # Train Discriminator
             # --------------------------------
             optimizer_D.zero_grad()
-            pred_real = discriminator(real_B, real_A)
-            pred_fake_detached = discriminator(fake_B.detach(), real_A)
-            loss_D = losses.discriminator_loss(pred_real, pred_fake_detached)
+            # Create fresh copies of tensors to avoid in-place modifications
+            real_B_copy = real_B.clone()
+            real_A_copy = real_A.clone()
+            fake_B_copy = fake_B.detach().clone()
+
+            # Calculate discriminator predictions
+            pred_real = discriminator(real_B_copy, real_A_copy)
+            pred_fake = discriminator(fake_B_copy, real_A_copy)
+
+            # Calculate loss
+            loss_D = losses.discriminator_loss(discriminator, real_B_copy, fake_B_copy, real_A_copy)
             loss_D.backward()
             torch.nn.utils.clip_grad_norm_(discriminator.parameters(), max_norm=max_grad_norm)
             optimizer_D.step()
@@ -107,7 +124,11 @@ def train_model(config):
 
         # Validation phase
         if epoch % config['logging']['validation_interval'] == 0:
-            val_loss = validate_model(generator, val_loader, device, losses)
+            val_loss, metrics = validate_model(generator, val_loader, device, losses, epoch, config)
+            
+            # Update learning rates based on validation loss
+            scheduler_G.step(val_loss)
+            scheduler_D.step(val_loss)
             
             # Early stopping check
             early_stopping(val_loss)
@@ -124,29 +145,71 @@ def train_model(config):
     return generator
 
 
-def validate_model(generator, val_loader, device, losses):
-    """
-    Perform validation on the generator.
-    Args:
-        generator (nn.Module): Trained generator model.
-        val_loader (DataLoader): Validation data loader.
-        device (torch.device): Device for computation.
-        losses (GANLosses): Loss functions for evaluation.
-    Returns:
-        float: Average validation loss
-    """
+def validate_model(generator, val_loader, device, losses, epoch, config):
     generator.eval()
-    total_loss = 0
+    total_l1_loss = 0
+    total_ssim = 0
+    total_gan_loss = 0
+    num_samples = 0
+    
     with torch.no_grad():
-        for data in val_loader:
+        for i, data in enumerate(val_loader):
             real_A, real_B = data['A'].to(device), data['B'].to(device)
             fake_B = generator(real_A)
-            loss = losses.l1_loss(fake_B, real_B).item()
-            total_loss += loss
+            
+            # Calculate various metrics
+            l1_loss = losses.l1_loss(fake_B, real_B).item()
+            ssim = calculate_ssim(fake_B, real_B).item()
+            gan_loss = losses.gan_loss(fake_B, True).item()
+            
+            total_l1_loss += l1_loss
+            total_ssim += ssim
+            total_gan_loss += gan_loss
+            num_samples += 1
+            
+            # Save sample validation images periodically
+            if i == 0:  # Save first batch
+                save_validation_samples(real_A, real_B, fake_B, epoch, config['logging']['checkpoint_dir'])
+    
+    metrics = {
+        'l1_loss': total_l1_loss / num_samples,
+        'ssim': total_ssim / num_samples,
+        'gan_loss': total_gan_loss / num_samples
+    }
+    
+    # Combined validation metric (weighted)
+    val_loss = (metrics['l1_loss'] * 0.4 + 
+                (1 - metrics['ssim']) * 0.4 + 
+                metrics['gan_loss'] * 0.2)
+    
+    return val_loss, metrics
 
-    avg_loss = total_loss / len(val_loader)
-    print(f"Validation Loss: {avg_loss:.4f}")
-    return avg_loss
+
+def save_validation_samples(real_A, real_B, fake_B, epoch, save_dir):
+    """
+    Save validation sample images.
+    
+    Args:
+        real_A (Tensor): Input images
+        real_B (Tensor): Ground truth images
+        fake_B (Tensor): Generated images
+        epoch (int): Current epoch number
+        save_dir (str): Directory to save the images
+    """
+    import torchvision.utils as vutils
+    
+    # Create directory if it doesn't exist
+    os.makedirs(os.path.join(save_dir, 'validation_samples'), exist_ok=True)
+    
+    # Concatenate the images horizontally
+    comparison = torch.cat([real_A, real_B, fake_B], dim=3)
+    
+    # Save the image
+    vutils.save_image(
+        comparison,
+        os.path.join(save_dir, 'validation_samples', f'epoch_{epoch}.png'),
+        normalize=True
+    )
 
 
 if __name__ == "__main__":

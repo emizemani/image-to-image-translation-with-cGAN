@@ -1,10 +1,12 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torch.nn.utils import spectral_norm
 
 class UNetGenerator(nn.Module):
-    def __init__(self, in_channels=3, out_channels=3, features=64):
+    def __init__(self, in_channels=3, out_channels=3, features=64, dropout_rate=0.5):
         super(UNetGenerator, self).__init__()
+        self.dropout_rate = dropout_rate
         
         # Encoder layers
         self.encoder = nn.ModuleList([
@@ -28,16 +30,17 @@ class UNetGenerator(nn.Module):
         """Downsampling block for U-Net encoder."""
         return nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding, bias=False),
-            nn.BatchNorm2d(out_channels),
-            nn.LeakyReLU(0.2)
+            nn.InstanceNorm2d(out_channels),
+            nn.LeakyReLU(0.2, inplace=False)
         )
         
-    def upsample(self, in_channels, out_channels, kernel_size=4, stride=2, padding=1):
+    def upsample(self, in_channels, out_channels, kernel_size=4, stride=2, padding=1, dropout_rate=0.5):
         """Upsampling block for U-Net decoder with skip connections."""
         return nn.Sequential(
             nn.ConvTranspose2d(in_channels, out_channels, kernel_size, stride, padding, bias=False),
-            nn.BatchNorm2d(out_channels),
-            nn.ReLU()
+            nn.InstanceNorm2d(out_channels),
+            nn.ReLU(inplace=False),
+            nn.Dropout2d(dropout_rate)
         )
         
     def forward(self, x):
@@ -77,9 +80,9 @@ class PatchGANDiscriminator(nn.Module):
     def conv_block(self, in_channels, out_channels, kernel_size=4, stride=2, padding=1):
         """Basic convolutional block for discriminator."""
         return nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding, bias=False),
-            nn.BatchNorm2d(out_channels),
-            nn.LeakyReLU(0.2)
+            spectral_norm(nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding, bias=False)),
+            nn.InstanceNorm2d(out_channels),
+            nn.LeakyReLU(0.2, inplace=False)
         )
 
     def forward(self, x, y):
@@ -90,3 +93,24 @@ class PatchGANDiscriminator(nn.Module):
         # Concatenate real/fake image and label map for conditional GAN
         combined = torch.cat([x, y], dim=1)
         return self.model(combined)
+
+    def discriminator_loss(self, discriminator, real_B, fake_B, condition):
+        """Calculate the discriminator loss."""
+        # Real loss
+        pred_real = discriminator(real_B, condition)
+        loss_D_real = self.gan_loss(pred_real, True)
+        
+        # Fake loss - create new tensor for fake predictions
+        with torch.no_grad():
+            fake_B_detached = fake_B.detach()
+        pred_fake = discriminator(fake_B_detached, condition)
+        loss_D_fake = self.gan_loss(pred_fake, False)
+        
+        # Gradient penalty
+        gp = self.gradient_penalty(discriminator, real_B, fake_B_detached, condition)
+        
+        # Combine losses without in-place operations
+        loss_D = (loss_D_real + loss_D_fake) * 0.5
+        loss_D = loss_D + self.lambda_gp * gp
+        
+        return loss_D

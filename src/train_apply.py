@@ -11,6 +11,9 @@ from evaluate import evaluate_predictions, log_metrics, extract_best_median_wors
 from utils.helper_functions import load_config
 import pandas as pd
 from torchvision import transforms
+import torch.nn.functional as F
+import numpy as np
+import time
 
 
 def plot_generalization_error(metrics, output_dir):
@@ -40,6 +43,9 @@ def train_apply():
     """
     Train, test, and evaluate the model with hyperparameter tuning.
     """
+    # Start timing at the beginning of train_apply
+    start_time = time.time()
+
     # Load the configuration
     config_path = "config.yaml"
     config = load_config(config_path)
@@ -52,34 +58,39 @@ def train_apply():
     print("Starting hyperparameter tuning...")
     best_model_path = None
     best_metric = float('-inf')  # Track the best composite score
-    learning_rates = [0.0001, 0.0002]
-    batch_sizes = [16, 32]
+
+    # Reduced hyperparameter set for long training
+    learning_rates = [0.0001, 0.0002]  # Most stable performances, anything higher becomes volatile
+    batch_sizes = [8]                  # More stable than 16
+    lambda_l1_values = [5.0, 10.0]     # Better balance between losses, with 25.0 it gets worse
 
     for lr in learning_rates:
         for batch_size in batch_sizes:
-            print(f"\nTesting config: LR={lr}, Batch Size={batch_size}")
-            config['training']['lr'] = lr
-            config['training']['batch_size'] = batch_size
+            for lambda_l1 in lambda_l1_values:
+                print(f"\nTesting config: LR={lr}, Batch Size={batch_size}, Lambda L1={lambda_l1}")
+                config['training']['lr'] = lr
+                config['training']['batch_size'] = batch_size
+                config['training']['lambda_L1'] = lambda_l1
 
-            # Train and Test
-            generator = train_model(config)
-            predictions = test_model(config)
+                # Train and Test
+                generator = train_model(config)
+                predictions = test_model(config)
 
-            # Evaluate
-            filtered_predictions = [(real_B, fake_B) for _, real_B, fake_B in predictions]
-            results = evaluate_predictions(filtered_predictions)
-            log_metrics(
-                results,
-                output_file=os.path.join(checkpoint_dir, f"evaluation_results_lr{lr}_bs{batch_size}.txt"),
-            )
+                # Evaluate
+                filtered_predictions = [(real_B, fake_B) for _, real_B, fake_B in predictions]
+                results = evaluate_predictions(filtered_predictions)
+                log_metrics(
+                    results,
+                    output_file=os.path.join(checkpoint_dir, f"evaluation_results_lr{lr}_bs{batch_size}_lambda{lambda_l1}.txt"),
+                )
 
-            # Save the best model based on multiple metrics (e.g., SSIM, MSE)
-            current_metric = results["SSIM"] - results["MSE"]  # Example composite metric
-            if current_metric > best_metric:
-                best_metric = current_metric
-                best_model_path = os.path.join(checkpoint_dir, f"generator_lr{lr}_bs{batch_size}.pth")
-                torch.save(generator.state_dict(), best_model_path)
-                print(f"New best model saved: {best_model_path}")
+                # Save the best model based on multiple metrics (e.g., SSIM, MSE)
+                current_metric = results["SSIM"] - results["MSE"]  # Example composite metric
+                if current_metric > best_metric:
+                    best_metric = current_metric
+                    best_model_path = os.path.join(checkpoint_dir, f"generator_lr{lr}_bs{batch_size}_lambda{lambda_l1}.pth")
+                    torch.save(generator.state_dict(), best_model_path)
+                    print(f"New best model saved: {best_model_path}")
 
     print(f"Best model achieved with Metric (Composite Score): {best_metric}")
 
@@ -120,6 +131,18 @@ def train_apply():
     else:
         print("No valid model was found during hyperparameter tuning.")
 
+    # At the end of train_apply, before the final print:
+    total_time = time.time() - start_time
+    hours = int(total_time // 3600)
+    minutes = int((total_time % 3600) // 60)
+    seconds = int(total_time % 60)
+
+    # Save timing information
+    with open(os.path.join(checkpoint_dir, "training_time.txt"), 'w') as f:
+        f.write(f"Total training time: {hours:02d}:{minutes:02d}:{seconds:02d}\n")
+        f.write(f"Total seconds: {total_time:.2f}")
+
+    print(f"\nTotal training time: {hours:02d}:{minutes:02d}:{seconds:02d}")
     print("Train-Apply pipeline completed.")
 
 

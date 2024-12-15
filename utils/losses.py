@@ -24,10 +24,42 @@ class ConditionalGANLoss(nn.Module):
         return loss
 
 class GANLosses:
-    def __init__(self, lambda_L1=100.0, gan_mode='vanilla'):
+    def __init__(self, lambda_L1=100.0, lambda_gp=10.0, gan_mode='vanilla'):
         self.lambda_L1 = lambda_L1
+        self.lambda_gp = lambda_gp
         self.gan_loss = ConditionalGANLoss(gan_mode=gan_mode)
         self.l1_loss = nn.L1Loss()
+
+    def gradient_penalty(self, discriminator, real_samples, fake_samples, condition):
+        batch_size = real_samples.size(0)
+        # Create random epsilon (don't use in-place operations)
+        epsilon = torch.rand(batch_size, 1, 1, 1, device=real_samples.device)
+        
+        # Create interpolated images (avoid in-place operations)
+        interpolated = epsilon * real_samples + ((1 - epsilon) * fake_samples)
+        interpolated = interpolated.requires_grad_(True)
+        
+        # Calculate discriminator output for interpolated images
+        d_interpolated = discriminator(interpolated, condition)
+        
+        # Calculate gradients
+        grad_outputs = torch.ones_like(d_interpolated, requires_grad=False)
+        gradients = torch.autograd.grad(
+            outputs=d_interpolated,
+            inputs=interpolated,
+            grad_outputs=grad_outputs,
+            create_graph=True,
+            retain_graph=True,
+            only_inputs=True
+        )[0]
+        
+        # Flatten gradients
+        gradients = gradients.view(batch_size, -1)
+        
+        # Calculate gradient penalty (avoid in-place operations)
+        gradient_penalty = torch.mean((gradients.norm(2, dim=1) - 1) ** 2)
+        
+        return gradient_penalty
 
     def generator_loss(self, pred_fake, real_image, fake_image):
         """Calculate the combined loss for the generator."""
@@ -41,14 +73,14 @@ class GANLosses:
         loss_G = loss_G_GAN + loss_L1
         return loss_G
 
-    def discriminator_loss(self, pred_real, pred_fake):
-        """Calculate the loss for the discriminator."""
-        # Discriminator loss for real images (should classify them as real)
-        loss_D_real = self.gan_loss(pred_real, target_is_real=True)
+    def discriminator_loss(self, discriminator, real_B, fake_B, condition):
+        pred_real = discriminator(real_B, condition)
+        loss_D_real = self.gan_loss(pred_real, True)
         
-        # Discriminator loss for fake images (should classify them as fake)
-        loss_D_fake = self.gan_loss(pred_fake, target_is_real=False)
+        pred_fake = discriminator(fake_B.detach(), condition)
+        loss_D_fake = self.gan_loss(pred_fake, False)
         
-        # Total discriminator loss (average of real and fake)
-        loss_D = (loss_D_real + loss_D_fake) * 0.5
+        gp = self.gradient_penalty(discriminator, real_B, fake_B, condition)
+        
+        loss_D = (loss_D_real + loss_D_fake) * 0.5 + self.lambda_gp * gp
         return loss_D

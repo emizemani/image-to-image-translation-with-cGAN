@@ -1,6 +1,6 @@
 training:
   batch_size: 16       # Example value
-  epochs: 100          # Example value
+  epochs: 200        # Example value
   start_epoch: 1       # Example value
   lambda_L1: 10.0      # Example value for L1 regularization weight
   lr: 0.0002           # Learning rate for Adam optimizer
@@ -8,6 +8,10 @@ training:
   max_grad_norm: 1.0  # Add this line
   early_stopping_patience: 7    # Add this line
   early_stopping_min_delta: 0.0 # Add this line
+  scheduler:
+    factor: 0.5      # Learning rate reduction factor
+    patience: 5      # Number of epochs to wait before reducing LR
+    min_lr: 0.00001  # Minimum learning rate
 
 
 data:

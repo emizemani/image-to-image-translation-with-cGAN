@@ -3,9 +3,11 @@ from PIL import Image
 import torch
 from torch.utils.data import Dataset
 import torchvision.transforms as transforms
+import numpy as np
+from data.augmentation import FacadeAugmentation
 
 class CustomDataset(Dataset):
-    def __init__(self, images_dir, labels_dir, transform=None):
+    def __init__(self, images_dir, labels_dir, transform=None, is_training=True):
         """
         Args:
             images_dir (str): Directory with the input images (label maps).
@@ -16,7 +18,11 @@ class CustomDataset(Dataset):
         self.labels_dir = labels_dir
         self.image_files = sorted(os.listdir(images_dir))
         self.label_files = sorted(os.listdir(labels_dir))
-        self.transform = transform if transform else transforms.ToTensor()  # Default to tensor transformation
+        self.transform = transform
+        self.is_training = is_training
+        
+        if is_training:
+            self.augmentation = FacadeAugmentation(img_size=256)
 
     def __len__(self): ### Overloading the len() operator, lets you make instances of your classes behave like familiar Python objects, even though they are custom data types
         return len(self.image_files)
@@ -30,12 +36,15 @@ class CustomDataset(Dataset):
         image = Image.open(image_path).convert("RGB")
         label = Image.open(label_path).convert("RGB")
 
-        # Apply transformations
-        if self.transform:
-            image = self.transform(image)
-            label = self.transform(label)
+        if self.is_training:
+            # Apply augmentation which includes ToTensor
+            image, label = self.augmentation(image, label)
+        else:
+            # For validation/test, just convert to tensor
+            if self.transform:
+                image = self.transform(image)
+                label = self.transform(label)
 
-        # Return a dictionary with both image and label
         return {"A": image, "B": label}
 
 
