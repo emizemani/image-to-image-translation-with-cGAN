@@ -38,9 +38,9 @@ class CustomDataset(Dataset):
         # Return a dictionary with both image and label
         return {"A": image, "B": label}
 
-
-### self parameter
 '''
+### self parameter
+
 class Dog:
     def __init__(self, name):
         self.name = name  # Using 'self' to refer to the instance's attribute
@@ -58,11 +58,13 @@ __init__(self, name): The __init__ method is called when an instance of the clas
 The self.name = name line uses self to set an attribute name on the instance. 
 Each Dog instance will have its own name attribute, distinct from other instances.
 Calling bark(): When my_dog.bark() is called, Python translates this to Dog.bark(my_dog). 
-The instance my_dog is automatically passed as self in the bark method, so self.name refers to my_dog.name, which is "Buddy".
+The instance my_dog is automatically passed as self in the bark method, so self.name refers 
+to my_dog.name, which is "Buddy".
 
 short:
 self is a reference to the instance on which a method is being called.
 It allows methods to access or modify the instances own attributes and other methods.
-self must always be the first parameter in instance methods, although you dont pass it explicitly when calling the method — Python handles it automatically.
+self must always be the first parameter in instance methods, although you dont pass it 
+explicitly when calling the method — Python handles it automatically.
 
 '''
