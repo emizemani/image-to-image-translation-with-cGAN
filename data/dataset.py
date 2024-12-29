@@ -45,6 +45,6 @@ class CustomDataset(Dataset):
                 image = self.transform(image)
                 label = self.transform(label)
 
-        return {"A": image, "B": label}
+        return {"B": image, "A": label}
 
 
