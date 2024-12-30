@@ -10,8 +10,8 @@ class UNetGenerator(nn.Module):
         
         # Encoder layers
         self.encoder = nn.ModuleList([
-            self.downsample(in_channels, features),
-            self.downsample(features, features * 2),
+            self.downsample(in_channels, features, dropout_rate=0),
+            self.downsample(features, features * 2, dropout_rate=0),
             self.downsample(features * 2, features * 4),
             self.downsample(features * 4, features * 8),
         ])
@@ -20,7 +20,7 @@ class UNetGenerator(nn.Module):
         self.decoder = nn.ModuleList([
             self.upsample(features * 8, features * 4),
             self.upsample(features * 4 * 2, features * 2),  # Double input channels for concatenated skip connections
-            self.upsample(features * 2 * 2, features),       # Double input channels for concatenated skip connections
+            self.upsample(features * 2 * 2, features, dropout_rate=0),       # Double input channels for concatenated skip connections
         ])
 
         # Final layer for output
