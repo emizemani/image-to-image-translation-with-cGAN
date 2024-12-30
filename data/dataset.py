@@ -38,10 +38,10 @@ class CustomDataset(Dataset):
 
         if self.is_training:
             # Apply augmentation which includes ToTensor
-            # image, label = self.augmentation(image, label)
-            if self.transform:
-                image = self.transform(image)
-                label = self.transform(label)
+            image, label = self.augmentation(image, label)
+            # if self.transform:
+            #     image = self.transform(image)
+            #     label = self.transform(label)
         else:
             # For validation/test, just convert to tensor
             if self.transform:
