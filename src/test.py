@@ -58,24 +58,21 @@ def test_model(config):
     print(f"Testing complete. Processed {len(predictions)} samples.")
     return predictions
 
-def save_validation_samples(real_A, real_B, fake_B, number):
+def save_test_samples(real_A, real_B, fake_B, number, save_dir):
     """
-    Save validation sample images.
+    Save test sample images.
     
     Args:
         real_A (Tensor): Input images
         real_B (Tensor): Ground truth images
         fake_B (Tensor): Generated images
-        epoch (int): Current epoch number
+        number (int): Current image number
         save_dir (str): Directory to save the images
     """
     import torchvision.utils as vutils
 
-    save_dir = 'testing'
-    val_dir = 'validation_samples'
-
     # Create directory if it doesn't exist
-    os.makedirs(os.path.join(save_dir, val_dir), exist_ok=True)
+    os.makedirs(save_dir, exist_ok=True)
     
     # Concatenate the images horizontally
     comparison = torch.cat([real_A, real_B, fake_B], dim=3)
@@ -83,7 +80,7 @@ def save_validation_samples(real_A, real_B, fake_B, number):
     # Save the image
     vutils.save_image(
         comparison,
-        os.path.join(save_dir, val_dir, f'epoch_{number}.png'),
+        os.path.join(save_dir, f'image_{number}.png'),
         normalize=True
     )
 
@@ -93,10 +90,13 @@ if __name__ == "__main__":
     config_path = "config.yaml"
     config = load_config(config_path)
 
+    # Define storage directory
+    save_dir = "testing/test1"
+
     # Test the model
     predictions = test_model(config)
 
     # Save predictions or perform any other processing as needed
     for i, prediction in enumerate(predictions):
-        save_validation_samples(*prediction, i+1)
-    print(f"Generated {len(predictions)} predictions.")
+        save_test_samples(*prediction, i+1, save_dir)
+    print(f"Generated {len(predictions)} images.")
