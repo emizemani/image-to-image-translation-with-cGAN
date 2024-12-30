@@ -30,7 +30,7 @@ class FacadeAugmentation:
             # Convert to tensor as the last step
             transforms.ToTensor(),
             # Tensor-specific operations
-            # AddGaussianNoise(mean=0., std=0.01)
+            AddGaussianNoise(mean=0., std=0.01)
         ])
         
     def __call__(self, image, mask=None):
