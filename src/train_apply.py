@@ -62,7 +62,7 @@ def train_apply():
     # Reduced hyperparameter set for long training
     learning_rates = [0.0002]  # Most stable performances, anything higher becomes volatile
     batch_sizes = [8]                  # More stable than 16
-    lambda_l1_values = [10]     # Better balance between losses, with 25.0 it gets worse
+    lambda_l1_values = [100]     # Better balance between losses, with 25.0 it gets worse
 
     for lr in learning_rates:
         for batch_size in batch_sizes:

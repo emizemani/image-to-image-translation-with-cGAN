@@ -26,9 +26,7 @@ def train_model(config):
     train_dataset = CustomDataset(
     images_dir=config['data']['train_images_dir'],
     labels_dir=config['data']['train_labels_dir'],
-    transform=transforms.Compose([
-            transforms.ToTensor(),
-        ]),
+    transform=None,
     is_training=True
     )
 
