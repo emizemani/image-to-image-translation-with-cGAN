@@ -118,7 +118,7 @@ def train_apply():
 
         # Showcase Test Cases
         print("Extracting best, median, and worst test cases...")
-        examples = extract_best_median_worst(predictions, results)
+        examples = extract_best_median_worst(filtered_predictions, results)
         for case, (real_B, fake_B, score) in examples.items():
             # real_B and fake_B are currently 4D tensors (1, C, H, W)
             # We should use squeeze() to remove the batch dimension since these are individual examples
