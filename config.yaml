@@ -6,7 +6,7 @@ training:
   lr: 0.0002           # Learning rate for Adam optimizer
   checkpoint_interval: 20  # How often to save checkpoints
   max_grad_norm: 1.0  # Add this line
-  early_stopping_patience: 7    # Add this line
+  early_stopping_patience: 50    # Add this line
   early_stopping_min_delta: 0.0 # Add this line
   scheduler:
     factor: 0.5      # Learning rate reduction factor
