@@ -67,7 +67,7 @@ def train_model(config):
 
     # Initialize early stopping
     early_stopping = EarlyStopping(
-        patience=config['training'].get('early_stopping_patience', 7),
+        patience=config['training'].get('early_stopping_patience', 50),
         min_delta=config['training'].get('early_stopping_min_delta', 0.0),
         verbose=True
     )
