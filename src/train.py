@@ -60,7 +60,7 @@ def train_model(config):
     scheduler_D = ReduceLROnPlateau(optimizer_D, mode='min', factor=0.5, patience=5, verbose=True)
 
     # Initialize loss functions
-    losses = GANLosses(lambda_L1=config['training']['lambda_L1'], gan_mode='vanilla', lambda_gp=100)
+    losses = GANLosses(lambda_L1=config['training']['lambda_L1'], gan_mode='vanilla', lambda_gp=10)
 
     # Get max_grad_norm from config
     max_grad_norm = config['training'].get('max_grad_norm', 1.0)
