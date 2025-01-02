@@ -60,14 +60,15 @@ def train_apply():
     best_metric = float('-inf')  # Track the best composite score
 
     # Reduced hyperparameter set for long training
-    learning_rates = [0.0002]  # Most stable performances, anything higher becomes volatile
-    batch_sizes = [8]                  # More stable than 16
-    lambda_l1_values = [100]     # Better balance between losses, with 25.0 it gets worse
+    learning_rates = [0.00001, 0.0001, 0.001]  # Most stable performances, anything higher becomes volatile
+    batch_sizes = [8, 32, 128]                  # More stable than 16
+    lambda_l1_values = [1, 10, 100]     # Better balance between losses, with 25.0 it gets worse
 
     for lr in learning_rates:
         for batch_size in batch_sizes:
             for lambda_l1 in lambda_l1_values:
                 print(f"\nTesting config: LR={lr}, Batch Size={batch_size}, Lambda L1={lambda_l1}")
+                config['logging']['checkpoint_dir'] = f"checkpoints/model_lr={lr}_bs={bs}_l1={l1}"
                 config['training']['lr'] = lr
                 config['training']['batch_size'] = batch_size
                 config['training']['lambda_L1'] = lambda_l1

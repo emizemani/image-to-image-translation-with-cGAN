@@ -26,7 +26,7 @@ class UNetGenerator(nn.Module):
         # Final layer for output
         self.final_layer = nn.Conv2d(features * 2, out_channels, kernel_size=1)
 
-    def downsample(self, in_channels, out_channels, kernel_size=4, stride=2, padding=1, dropout_rate=0.25):
+    def downsample(self, in_channels, out_channels, kernel_size=4, stride=2, padding=1, dropout_rate=0.5):
         """Downsampling block for U-Net encoder."""
         return nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding, bias=False),
