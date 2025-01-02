@@ -68,7 +68,7 @@ def train_apply():
         for batch_size in batch_sizes:
             for lambda_l1 in lambda_l1_values:
                 print(f"\nTesting config: LR={lr}, Batch Size={batch_size}, Lambda L1={lambda_l1}")
-                config['logging']['checkpoint_dir'] = f"checkpoints/model_lr={lr}_bs={bs}_l1={l1}"
+                config['logging']['checkpoint_dir'] = f"checkpoints/model_lr={lr}_bs={batch_size}_l1={lambda_l1}"
                 config['training']['lr'] = lr
                 config['training']['batch_size'] = batch_size
                 config['training']['lambda_L1'] = lambda_l1
