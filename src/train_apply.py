@@ -63,7 +63,7 @@ def train_apply():
     # learning_rates = [0.00001, 0.0001, 0.001]  # Most stable performances, anything higher becomes volatile
     # batch_sizes = [8, 32, 128]                  # More stable than 16
     # lambda_l1_values = [1, 10, 100]     # Better balance between losses, with 25.0 it gets worse
-    learning_rates = [0.0001]  # Most stable performances, anything higher becomes volatile
+    learning_rates = [0.0001, 0.0002, 0.0003, 0.0005]  # Most stable performances, anything higher becomes volatile
     batch_sizes = [8]                  # More stable than 16
     lambda_l1_values = [10]     # Better balance between losses, with 25.0 it gets worse
 
