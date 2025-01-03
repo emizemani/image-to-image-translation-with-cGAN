@@ -15,8 +15,8 @@ training:
 
 
 data:
-  train_images_dir: "data/processed_test/train2/images"
-  train_labels_dir: "data/processed_test/train2/labels"
+  train_images_dir: "data/processed/train/images"
+  train_labels_dir: "data/processed/train/labels"
   test_images_dir: "data/processed/test/images"
   test_labels_dir: "data/processed/test/labels"
   val_images_dir: "data/processed/val/images"
@@ -26,7 +26,7 @@ logging:
   log_interval: 10                 # Log frequency (in steps)
   checkpoint_interval: 201           # Frequency of saving model checkpoints
   validation_interval: 1 
-  checkpoint_dir: "checkpoints/prototyp_29"
+  checkpoint_dir: "checkpoints/prototyp_30"
 
 device:
   use_gpu: true                    # Enable GPU usage if available
