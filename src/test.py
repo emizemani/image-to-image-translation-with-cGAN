@@ -25,11 +25,12 @@ def test_model(config):
     if not os.path.exists(checkpoint_path):
         raise FileNotFoundError(f"Checkpoint not found at {checkpoint_path}")
     
-    generator.load_state_dict(torch.load(checkpoint_path))
+    device = torch.device("cuda" if config['device']['use_gpu'] and torch.cuda.is_available() else "cpu")
+
+    generator.load_state_dict(torch.load(checkpoint_path, device, weights_only=True))
     generator.eval()
 
     # Move the model to the correct device
-    device = torch.device("cuda" if config['device']['use_gpu'] and torch.cuda.is_available() else "cpu")
     generator.to(device)
 
     # Prepare the test dataset and dataloader
@@ -57,14 +58,45 @@ def test_model(config):
     print(f"Testing complete. Processed {len(predictions)} samples.")
     return predictions
 
+def save_test_samples(real_A, real_B, fake_B, number, save_dir):
+    """
+    Save test sample images.
+    
+    Args:
+        real_A (Tensor): Input images
+        real_B (Tensor): Ground truth images
+        fake_B (Tensor): Generated images
+        number (int): Current image number
+        save_dir (str): Directory to save the images
+    """
+    import torchvision.utils as vutils
+
+    # Create directory if it doesn't exist
+    os.makedirs(save_dir, exist_ok=True)
+    
+    # Concatenate the images horizontally
+    comparison = torch.cat([real_A, real_B, fake_B], dim=3)
+    
+    # Save the image
+    vutils.save_image(
+        comparison,
+        os.path.join(save_dir, f'image_{number}.png'),
+        normalize=True
+    )
+
 if __name__ == "__main__":
 
     # Load configuration
     config_path = "config.yaml"
     config = load_config(config_path)
 
+    # Define storage directory
+    save_dir = "validation/test1"
+
     # Test the model
     predictions = test_model(config)
 
     # Save predictions or perform any other processing as needed
-    print(f"Generated {len(predictions)} predictions.")
+    for i, prediction in enumerate(predictions):
+        save_test_samples(*prediction, i+1, save_dir)
+    print(f"Generated {len(predictions)} images.")

@@ -26,12 +26,13 @@ class UNetGenerator(nn.Module):
         # Final layer for output
         self.final_layer = nn.Conv2d(features * 2, out_channels, kernel_size=1)
 
-    def downsample(self, in_channels, out_channels, kernel_size=4, stride=2, padding=1):
+    def downsample(self, in_channels, out_channels, kernel_size=4, stride=2, padding=1, dropout_rate=0.5):
         """Downsampling block for U-Net encoder."""
         return nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding, bias=False),
             nn.InstanceNorm2d(out_channels),
-            nn.LeakyReLU(0.2, inplace=False)
+            nn.LeakyReLU(0.2, inplace=False),
+            nn.Dropout2d(dropout_rate)
         )
         
     def upsample(self, in_channels, out_channels, kernel_size=4, stride=2, padding=1, dropout_rate=0.5):
@@ -40,7 +41,7 @@ class UNetGenerator(nn.Module):
             nn.ConvTranspose2d(in_channels, out_channels, kernel_size, stride, padding, bias=False),
             nn.InstanceNorm2d(out_channels),
             nn.ReLU(inplace=False),
-            nn.Dropout2d(dropout_rate)
+            # nn.Dropout2d(dropout_rate)
         )
         
     def forward(self, x):

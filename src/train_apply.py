@@ -60,9 +60,9 @@ def train_apply():
     best_metric = float('-inf')  # Track the best composite score
 
     # Reduced hyperparameter set for long training
-    learning_rates = [0.0001, 0.0002]  # Most stable performances, anything higher becomes volatile
-    batch_sizes = [8]                  # More stable than 16
-    lambda_l1_values = [5.0, 10.0]     # Better balance between losses, with 25.0 it gets worse
+    learning_rates = [0.0003]   # Most stable performances, anything higher becomes volatile
+    batch_sizes = [8]           # More stable than 16
+    lambda_l1_values = [10]     # Better balance between losses, with 25.0 it gets worse
 
     for lr in learning_rates:
         for batch_size in batch_sizes:
@@ -118,7 +118,7 @@ def train_apply():
 
         # Showcase Test Cases
         print("Extracting best, median, and worst test cases...")
-        examples = extract_best_median_worst(predictions, results)
+        examples = extract_best_median_worst(filtered_predictions, results)
         for case, (real_B, fake_B, score) in examples.items():
             # real_B and fake_B are currently 4D tensors (1, C, H, W)
             # We should use squeeze() to remove the batch dimension since these are individual examples

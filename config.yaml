@@ -1,9 +1,9 @@
 training:
-  batch_size: 16       # Example value
+  batch_size: 8       # Example value
   epochs: 200        # Example value
   start_epoch: 1       # Example value
   lambda_L1: 10.0      # Example value for L1 regularization weight
-  lr: 0.0002           # Learning rate for Adam optimizer
+  lr: 0.0003           # Learning rate for Adam optimizer
   checkpoint_interval: 20  # How often to save checkpoints
   max_grad_norm: 1.0  # Add this line
   early_stopping_patience: 7    # Add this line
