@@ -46,6 +46,10 @@ def train_model(config):
     generator = UNetGenerator(dropout_rate=0.5)
     discriminator = PatchGANDiscriminator()
 
+    # for testing
+    generator.load_state_dict(torch.load("checkpoints/prototyp_28/generator_latest.pth"))
+    discriminator.load_state_dict(torch.load("checkpoints/prototyp_28/discriminator_latest.pth"))
+
     # Set up device for training
     device = torch.device("cuda" if config['device']['use_gpu'] and torch.cuda.is_available() else "cpu")
     generator.to(device)
