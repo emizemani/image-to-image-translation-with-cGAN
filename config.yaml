@@ -26,7 +26,7 @@ logging:
   log_interval: 10                 # Log frequency (in steps)
   checkpoint_interval: 201           # Frequency of saving model checkpoints
   validation_interval: 1 
-  checkpoint_dir: "checkpoints/prototyp_25"
+  checkpoint_dir: "checkpoints/prototyp_26"
 
 device:
   use_gpu: true                    # Enable GPU usage if available
