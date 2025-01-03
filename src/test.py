@@ -91,7 +91,7 @@ if __name__ == "__main__":
     config = load_config(config_path)
 
     # Define storage directory
-    save_dir = "testing/test1"
+    save_dir = "testing/test2"
 
     # Test the model
     predictions = test_model(config)
