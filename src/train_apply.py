@@ -100,7 +100,7 @@ def train_apply():
     # Final Evaluation Phase with the Best Model
     if best_model_path is not None:
         print("Loading the best model for evaluation...")
-        generator = UNetGenerator(dropout_rate=0)
+        generator = UNetGenerator()
         generator.load_state_dict(torch.load(best_model_path))
         generator.eval()
 
