@@ -3,11 +3,14 @@ import sys
 import matplotlib.pyplot as plt
 import seaborn as sns
 import torch
-from model import UNetGenerator
+
+# Add the project root to Python path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from train import train_model
-from test import test_model
-from evaluate import evaluate_predictions, log_metrics, extract_best_median_worst
+
+from src.model import UNetGenerator, PatchGANDiscriminator
+from src.train import train_model
+from src.test import test_model
+from src.evaluate import evaluate_predictions, log_metrics, extract_best_median_worst, enhanced_evaluation
 from utils.helper_functions import load_config
 import pandas as pd
 from torchvision import transforms
@@ -98,19 +101,24 @@ def train_apply():
     if best_model_path is not None:
         print("Loading the best model for evaluation...")
         generator = UNetGenerator()
+        discriminator = PatchGANDiscriminator()
+        
         generator.load_state_dict(torch.load(best_model_path))
+        discriminator.load_state_dict(torch.load(best_discriminator_path))
+        
         generator.eval()
-
-        # Test and Evaluate the Best Model
-        print("Generating predictions with the best model...")
-        predictions = test_model(config)
-
-        print("Evaluating the best model's predictions...")
-        # Extract only real_B and fake_B for evaluation
-        filtered_predictions = [(real_B, fake_B) for _, real_B, fake_B in predictions]
-        # Evaluate predictions
-        results = evaluate_predictions(filtered_predictions)
-        log_metrics(results, output_file=os.path.join(checkpoint_dir, "best_model_evaluation_results.txt"))
+        discriminator.eval()
+        
+        # Run enhanced evaluation
+        metrics, analysis_results = enhanced_evaluation(
+            generator, 
+            discriminator,
+            test_loader,
+            config
+        )
+        
+        # Log results
+        log_metrics(metrics, os.path.join(checkpoint_dir, "enhanced_evaluation_results.txt"))
 
         # Plot Generalization Error
         print("Plotting generalization error metrics for the best model...")
