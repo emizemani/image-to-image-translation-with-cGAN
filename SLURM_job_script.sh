@@ -9,4 +9,4 @@
 
 container=pml.sif
 
-apptainer run --nv $container python src/train_apply.py
+apptainer run --nv $container python -u src/train_apply.py
