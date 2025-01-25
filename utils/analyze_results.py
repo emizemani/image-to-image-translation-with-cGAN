@@ -49,8 +49,8 @@ def run_analysis(config):
     discriminator = PatchGANDiscriminator()
     
     # Use the same paths as in train_apply.py
-    best_model_path = os.path.join(config['logging']['checkpoint_dir'], 'generator_latest.pth')
-    best_discriminator_path = os.path.join(config['logging']['checkpoint_dir'], 'discriminator_latest.pth')
+    best_model_path = os.path.join(config['logging']['checkpoint_dir'], 'best_model/generator_latest.pth')
+    best_discriminator_path = os.path.join(config['logging']['checkpoint_dir'], 'best_model/discriminator_latest.pth')
     
     # Load with appropriate device mapping
     generator.load_state_dict(

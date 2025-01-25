@@ -59,11 +59,12 @@ def train_apply():
 
     # Hyperparameter Tuning
     print("Starting hyperparameter tuning...")
-    best_model_path = None
+    best_model_path = 'best_model'
+    os.makedirs(f'{checkpoint_dir}/{best_model_path}', exist_ok=True)
     best_metric = float('-inf')  # Track the best composite score
 
     # Reduced hyperparameter set for long training
-    learning_rates = [0.0003]   # Most stable performances, anything higher becomes volatile
+    learning_rates = [0.0003, 0.0005]   # Most stable performances, anything higher becomes volatile
     batch_sizes = [8]           # More stable than 16
     lambda_l1_values = [10]     # Better balance between losses, with 25.0 it gets worse
 
@@ -71,12 +72,13 @@ def train_apply():
         for batch_size in batch_sizes:
             for lambda_l1 in lambda_l1_values:
                 print(f"\nTesting config: LR={lr}, Batch Size={batch_size}, Lambda L1={lambda_l1}")
-                config['training']['lr'] = lr
-                config['training']['batch_size'] = batch_size
-                config['training']['lambda_L1'] = lambda_l1
+                config['current_training'] = {}
+                config['current_training']['lr'] = lr
+                config['current_training']['batch_size'] = batch_size
+                config['current_training']['lambda_L1'] = lambda_l1
 
                 # Train and Test
-                generator = train_model(config)
+                generator, discriminator = train_model(config)
                 predictions = test_model(config)
 
                 # Evaluate
@@ -84,16 +86,20 @@ def train_apply():
                 results = evaluate_predictions(filtered_predictions)
                 log_metrics(
                     results,
-                    output_file=os.path.join(checkpoint_dir, f"evaluation_results_lr{lr}_bs{batch_size}_lambda{lambda_l1}.txt"),
+                    output_file=os.path.join(checkpoint_dir, f"lr{lr}_bs{batch_size}_lambda{lambda_l1}/evaluation_results.txt"),
                 )
 
                 # Save the best model based on multiple metrics (e.g., SSIM, MSE)
                 current_metric = results["SSIM"] - results["MSE"]  # Example composite metric
                 if current_metric > best_metric:
                     best_metric = current_metric
-                    best_model_path = os.path.join(checkpoint_dir, f"generator_lr{lr}_bs{batch_size}_lambda{lambda_l1}.pth")
-                    torch.save(generator.state_dict(), best_model_path)
-                    print(f"New best model saved: {best_model_path}")
+                    best_generator_path = os.path.join(checkpoint_dir, f"{best_model_path}/generator_latest.pth")
+                    torch.save(generator.state_dict(), best_generator_path)
+                    best_discriminator_path = os.path.join(checkpoint_dir, f"{best_model_path}/discriminator_latest.pth")
+                    torch.save(discriminator.state_dict(), best_discriminator_path)
+                    with open(f'{checkpoint_dir}/{best_model_path}/best_parameters.txt', 'w') as f:
+                        f.write(f"larning rate: {lr}\nbatch size: {batch_size}\nlambda l1: {lambda_l1}")
+                    print(f"New best model saved: lr{lr}_bs{batch_size}_lambda{lambda_l1}")
 
     print(f"Best model achieved with Metric (Composite Score): {best_metric}")
 
@@ -103,11 +109,20 @@ def train_apply():
         generator = UNetGenerator()
         discriminator = PatchGANDiscriminator()
         
-        generator.load_state_dict(torch.load(best_model_path))
+        generator.load_state_dict(torch.load(best_generator_path))
         discriminator.load_state_dict(torch.load(best_discriminator_path))
         
         generator.eval()
         discriminator.eval()
+
+        # Prepare test dataset
+        test_dataset = CustomDataset(
+            images_dir=config['data']['test_images_dir'],
+            labels_dir=config['data']['test_labels_dir'],
+            transform=transforms.Compose([transforms.ToTensor()]),
+            is_training=False
+        )       
+        test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False)
         
         # Run enhanced evaluation
         metrics, analysis_results = enhanced_evaluation(

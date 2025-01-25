@@ -21,7 +21,8 @@ def test_model(config):
     """
     # Load the generator model
     generator = UNetGenerator()
-    checkpoint_path = os.path.join(config['logging']['checkpoint_dir'], "generator_latest.pth")
+    current_model = f"lr{config['current_training']['lr']}_bs{config['current_training']['batch_size']}_lambda{config['current_training']['lambda_L1']}"
+    checkpoint_path = os.path.join(config['logging']['checkpoint_dir'], f"{current_model}/generator_latest.pth")
     if not os.path.exists(checkpoint_path):
         raise FileNotFoundError(f"Checkpoint not found at {checkpoint_path}")
     
@@ -90,6 +91,16 @@ if __name__ == "__main__":
     # Load configuration
     config_path = "config.yaml"
     config = load_config(config_path)
+
+    # Choose model
+    learning_rate = 0
+    batch_size = 0
+    lambda_l1 = 0
+
+    config['current_training'] = {}
+    config['current_training']['lr'] = learning_rate
+    config['current_training']['batch_size'] = batch_size
+    config['current_training']['lambda_L1'] = lambda_l1
 
     # Define storage directory
     save_dir = "validation/test1"
