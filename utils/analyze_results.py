@@ -73,7 +73,6 @@ def run_analysis(config):
     test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False)
     
     # Run enhanced evaluation
-    print("Running enhanced evaluation...")
     start_time = time.time()
     metrics = enhanced_evaluation(generator, discriminator, test_loader, config)
     evaluation_time = time.time() - start_time

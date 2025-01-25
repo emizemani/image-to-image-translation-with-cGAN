@@ -66,9 +66,9 @@ def train_apply():
     best_metric = float('-inf')  # Track the best composite score
 
     # Reduced hyperparameter set for long training
-    learning_rates = [0.0003, 0.0005]   # Most stable performances, anything higher becomes volatile
-    batch_sizes = [8]           # More stable than 16
-    lambda_l1_values = [10]     # Better balance between losses, with 25.0 it gets worse
+    learning_rates = config['training']['learning_rates']
+    batch_sizes = config['training']['batch_sizes']
+    lambda_l1_values = config['training']['lambda_L1']
 
     for lr in learning_rates:
         for batch_size in batch_sizes:

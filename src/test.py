@@ -93,9 +93,9 @@ if __name__ == "__main__":
     config = load_config(config_path)
 
     # Choose model
-    learning_rate = 0
-    batch_size = 0
-    lambda_l1 = 0
+    learning_rate = 0.0003
+    batch_size = 8
+    lambda_l1 = 10
 
     config['current_training'] = {}
     config['current_training']['lr'] = learning_rate
