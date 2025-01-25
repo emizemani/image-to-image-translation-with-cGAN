@@ -16,6 +16,7 @@ import pandas as pd
 from torchvision import transforms
 import torch.nn.functional as F
 from data.dataset import CustomDataset
+from torch.utils.data import DataLoader
 import numpy as np
 import time
 
@@ -99,7 +100,7 @@ def train_apply():
                     best_discriminator_path = os.path.join(checkpoint_dir, f"{best_model_path}/discriminator_latest.pth")
                     torch.save(discriminator.state_dict(), best_discriminator_path)
                     with open(f'{checkpoint_dir}/{best_model_path}/best_parameters.txt', 'w') as f:
-                        f.write(f"larning rate: {lr}\nbatch size: {batch_size}\nlambda l1: {lambda_l1}")
+                        f.write(f"larning rate: {lr}\nbatch size: {batch_size}\nlambda l1: {lambda_l1}\n")
                     print(f"New best model saved: lr{lr}_bs{batch_size}_lambda{lambda_l1}")
 
     print(f"Best model achieved with Metric (Composite Score): {best_metric}")
