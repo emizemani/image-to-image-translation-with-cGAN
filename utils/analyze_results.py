@@ -29,13 +29,11 @@ class NumpyEncoder(json.JSONEncoder):
             return obj.tolist()
         return super(NumpyEncoder, self).default(obj)
 
-def run_analysis():
+def run_analysis(config):
     """
     Run comprehensive analysis of the model and generate report data.
     This is a post-training analysis tool that uses the best model from train_apply.py
     """
-    # Load configuration
-    config = load_config()
     
     # Set up output directory for analysis results
     analysis_dir = os.path.join(config['logging']['checkpoint_dir'], 'analysis')
@@ -131,4 +129,5 @@ def run_analysis():
     print("- attributions/[case]_guided_gradcam.png")
 
 if __name__ == "__main__":
-    run_analysis()
+    config = load_config()
+    run_analysis(config)

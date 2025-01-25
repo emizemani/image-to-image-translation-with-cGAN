@@ -37,7 +37,8 @@ def test_model(config):
     test_dataset = CustomDataset(
         images_dir=config['data']['test_images_dir'],
         labels_dir=config['data']['test_labels_dir'],
-        transform=transforms.Compose([transforms.Resize((256, 256)), transforms.ToTensor()])
+        transform=transforms.Compose([transforms.Resize((256, 256)), transforms.ToTensor()]),
+        is_training=False
     )
     test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False)
 

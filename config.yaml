@@ -13,14 +13,17 @@ training:
     patience: 5      # Number of epochs to wait before reducing LR
     min_lr: 0.00001  # Minimum learning rate
 
+# 1: CMP Facade Database; 
+dataset: 1
 
 data:
-  train_images_dir: "data/processed/train/images"
-  train_labels_dir: "data/processed/train/labels"
-  test_images_dir: "data/processed/test/images"
-  test_labels_dir: "data/processed/test/labels"
-  val_images_dir: "data/processed/val/images"
-  val_labels_dir: "data/processed/val/labels"
+  datasets_dir: "data/dataset_"
+  train_images_dir: "processed/train/images"
+  train_labels_dir: "processed/train/labels"
+  test_images_dir: "processed/test/images"
+  test_labels_dir: "processed/test/labels"
+  val_images_dir: "processed/val/images"
+  val_labels_dir: "processed/val/labels"
 
 logging:
   log_interval: 10                 # Log frequency (in steps)
