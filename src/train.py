@@ -74,7 +74,7 @@ def train_model(config):
 
     # Current model as string
     current_model = f"lr{config['current_training']['lr']}_bs{config['current_training']['batch_size']}_lambda{config['current_training']['lambda_L1']}"
-    os.makedirs(f'{config['logging']['checkpoint_dir']}/{current_model}', exist_ok=True)
+    os.makedirs(f"{config['logging']['checkpoint_dir']}/{current_model}", exist_ok=True)
 
     # Training loop
     for epoch in range(config['training']['start_epoch'], config['training']['epochs'] + 1):
