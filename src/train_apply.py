@@ -127,8 +127,8 @@ def train_apply():
         test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False)
         
         # Run enhanced evaluation
-        metrics, analysis_results = enhanced_evaluation(
-            generator, 
+        metrics = enhanced_evaluation(
+            generator,
             discriminator,
             test_loader,
             config
