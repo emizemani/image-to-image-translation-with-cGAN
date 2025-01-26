@@ -94,24 +94,3 @@ class PatchGANDiscriminator(nn.Module):
         # Concatenate real/fake image and label map for conditional GAN
         combined = torch.cat([x, y], dim=1)
         return self.model(combined)
-
-    def discriminator_loss(self, discriminator, real_B, fake_B, condition):
-        """Calculate the discriminator loss."""
-        # Real loss
-        pred_real = discriminator(real_B, condition)
-        loss_D_real = self.gan_loss(pred_real, True)
-        
-        # Fake loss - create new tensor for fake predictions
-        with torch.no_grad():
-            fake_B_detached = fake_B.detach()
-        pred_fake = discriminator(fake_B_detached, condition)
-        loss_D_fake = self.gan_loss(pred_fake, False)
-        
-        # Gradient penalty
-        gp = self.gradient_penalty(discriminator, real_B, fake_B_detached, condition)
-        
-        # Combine losses without in-place operations
-        loss_D = (loss_D_real + loss_D_fake) * 0.5
-        loss_D = loss_D + self.lambda_gp * gp
-        
-        return loss_D

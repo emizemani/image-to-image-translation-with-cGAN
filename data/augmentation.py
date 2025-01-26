@@ -22,12 +22,12 @@ class FacadeAugmentation:
                 saturation=0.2,
                 hue=0.1
             ),
-            transforms.RandomRotation(degrees=(-5, 5), fill=255),
-            transforms.RandomResizedCrop(
-                size=(img_size, img_size),
-                scale=(0.8, 1.0),
-                ratio=(3/4, 4/3)
-            ),
+            # transforms.RandomRotation(degrees=(-5, 5), fill=255),
+            # transforms.RandomResizedCrop(
+            #     size=(img_size, img_size),
+            #     scale=(0.8, 1.0),
+            #     ratio=(3/4, 4/3)
+            # ),
             # Convert to tensor as the last step
             transforms.ToTensor(),
             # Tensor-specific operations
