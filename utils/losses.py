@@ -24,7 +24,7 @@ class ConditionalGANLoss(nn.Module):
         return loss
 
 class GANLosses:
-    def __init__(self, lambda_L1=100.0, lambda_gp=0, gan_mode='vanilla'):
+    def __init__(self, lambda_L1=100.0, lambda_gp=100.0, gan_mode='vanilla'):
         self.lambda_L1 = lambda_L1
         self.lambda_gp = lambda_gp
         self.gan_loss = ConditionalGANLoss(gan_mode=gan_mode)
