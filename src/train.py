@@ -122,7 +122,7 @@ def train_model(config):
             optimizer_D.step()
 
             # Log losses at specified intervals
-            if i % config['logging']['log_interval'] == 0:
+            if i+1 % config['logging']['log_interval'] == 0:
                 print(f"Step [{i+1}/{len(train_loader)}]: Generator Loss - {loss_G.item():.4f}, Discriminator Loss - {loss_D.item():.4f}")
 
         # Save model checkpoints at specified intervals
