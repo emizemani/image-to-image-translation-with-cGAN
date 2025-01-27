@@ -3,9 +3,9 @@ import os
 import torch
 import numpy as np
 import matplotlib.pyplot as plt
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from sklearn.manifold import TSNE
 from utils.helper_functions import load_config
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from src.model import PatchGANDiscriminator
 from torch.utils.data import DataLoader
 from data.dataset import CustomDataset
@@ -63,8 +63,8 @@ def analyze_discriminator(config, input_dir, output_dir):
     print('1')
 
     # Flatten the feature maps for both real and fake images
-    real_features_flat = real_features.view(real_features.size(0), -1).detach().numpy()
-    fake_features_flat = fake_features.view(fake_features.size(0), -1).detach().numpy()
+    real_features_flat = real_features.view(real_features.size(0), -1).detach().cpu().numpy()
+    fake_features_flat = fake_features.view(fake_features.size(0), -1).detach().cpu().numpy()
 
     # Concatenate the real and fake feature maps into one array
     all_features = np.concatenate([real_features_flat, fake_features_flat], axis=0)
