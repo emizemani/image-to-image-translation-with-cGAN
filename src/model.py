@@ -99,3 +99,10 @@ class PatchGANDiscriminator(nn.Module):
             return features
 
         return self.classifier(features)
+
+
+def initialize_weights(m):
+    if isinstance(m, (nn.Conv2d, nn.Linear, nn.ConvTranspose2d)):
+        nn.init.normal_(m.weight, mean=0.0, std=0.02)
+        if m.bias is not None:
+            nn.init.zeros_(m.bias)

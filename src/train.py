@@ -7,7 +7,7 @@ from torch.utils.data import DataLoader
 from torchvision import transforms
 from utils.helper_functions import load_config
 from data.dataset import CustomDataset
-from src.model import UNetGenerator, PatchGANDiscriminator
+from src.model import UNetGenerator, PatchGANDiscriminator, initialize_weights
 from utils.losses import GANLosses
 from utils.early_stopping import EarlyStopping
 from torch.optim.lr_scheduler import ReduceLROnPlateau
@@ -44,7 +44,9 @@ def train_model(config):
 
     # Initialize generator and discriminator
     generator = UNetGenerator(dropout_rate=0.5)
+    generator.apply(initialize_weights)
     discriminator = PatchGANDiscriminator()
+    discriminator.apply(initialize_weights)
 
     # Set up device for training
     device = torch.device("cuda" if config['device']['use_gpu'] and torch.cuda.is_available() else "cpu")
