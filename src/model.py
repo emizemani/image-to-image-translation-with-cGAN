@@ -75,8 +75,8 @@ class PatchGANDiscriminator(nn.Module):
             self.conv_block(features, features * 2, stride=2),
             self.conv_block(features * 2, features * 4, stride=2),
             self.conv_block(features * 4, features * 8, stride=1),  # no downsampling here
-            nn.Conv2d(features * 8, 1, kernel_size=4, stride=1, padding=1)
         )
+        self.classifier = nn.Conv2d(features * 8, 1, kernel_size=4, stride=1, padding=1)
 
     def conv_block(self, in_channels, out_channels, kernel_size=4, stride=2, padding=1):
         """Basic convolutional block for discriminator."""
@@ -86,11 +86,16 @@ class PatchGANDiscriminator(nn.Module):
             nn.LeakyReLU(0.2, inplace=False)
         )
 
-    def forward(self, x, y):
+    def forward(self, x, y, return_features=False):
         # Check and make sure x and y have 3 channels
         if x.shape[1] != 3 or y.shape[1] != 3:
             raise ValueError(f"Expected both inputs to have 3 channels, got {x.shape[1]} and {y.shape[1]}")
 
         # Concatenate real/fake image and label map for conditional GAN
         combined = torch.cat([x, y], dim=1)
-        return self.model(combined)
+
+        features = self.model(combined)
+        if return_features:
+            return features
+
+        return self.classifier(features)

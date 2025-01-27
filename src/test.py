@@ -60,7 +60,7 @@ def test_model(config):
     print(f"Testing complete. Processed {len(predictions)} samples.")
     return predictions
 
-def save_test_samples(real_A, real_B, fake_B, number, save_dir):
+def save_test_samples(real_A, real_B, fake_B, number, save_dir, save_separately=False):
     """
     Save test sample images.
     
@@ -76,21 +76,35 @@ def save_test_samples(real_A, real_B, fake_B, number, save_dir):
     # Create directory if it doesn't exist
     os.makedirs(save_dir, exist_ok=True)
     
+    if save_separately:
+        os.makedirs(f"{save_dir}/0", exist_ok=True)
+        os.makedirs(f"{save_dir}/1", exist_ok=True)
+        os.makedirs(f"{save_dir}/2", exist_ok=True)
+        for i, image in enumerate((real_A, real_B, fake_B)):
+            # Save the image
+            vutils.save_image(
+                image,
+                os.path.join(save_dir, f"{i}/image_{number:03d}.png"),
+                normalize=True
+            )
+
+    else:
     # Concatenate the images horizontally
-    comparison = torch.cat([real_A, real_B, fake_B], dim=3)
-    
-    # Save the image
-    vutils.save_image(
-        comparison,
-        os.path.join(save_dir, f'image_{number}.png'),
-        normalize=True
-    )
+        comparison = torch.cat([real_A, real_B, fake_B], dim=3)
+        
+        # Save the image
+        vutils.save_image(
+            comparison,
+            os.path.join(save_dir, f'image_{number:03d}.png'),
+            normalize=True
+        )
 
 if __name__ == "__main__":
 
     # Load configuration
     config_path = "config.yaml"
     config = load_config(config_path)
+    save_separately = True
 
     # Choose model
     learning_rate = 0.0003
@@ -110,5 +124,5 @@ if __name__ == "__main__":
 
     # Save predictions or perform any other processing as needed
     for i, prediction in enumerate(predictions):
-        save_test_samples(*prediction, i+1, save_dir)
+        save_test_samples(*prediction, i+1, save_dir, save_separately)
     print(f"Generated {len(predictions)} images.")
