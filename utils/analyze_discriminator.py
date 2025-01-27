@@ -129,7 +129,7 @@ if __name__ == "__main__":
     config = load_config(config_path)
 
     # Define input directory
-    input_dir = "validation/test1"
+    input_dir = "validation/test4"
 
     # Define output directory
     output_dir = "validation/test2"
