@@ -3,7 +3,7 @@ training:
   batch_sizes: [8]    # Example values
   lambda_L1: [10]      # Example values for L1 regularization weight
   
-  epochs: 200        # Example value
+  epochs: 1        # Example value
   start_epoch: 1       # Example value
   
   max_grad_norm: 1.0  # Add this line
