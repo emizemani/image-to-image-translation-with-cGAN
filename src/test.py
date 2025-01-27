@@ -117,7 +117,7 @@ if __name__ == "__main__":
     config['current_training']['lambda_L1'] = lambda_l1
 
     # Define storage directory
-    save_dir = "validation/test1"
+    save_dir = "validation/test2"
 
     # Test the model
     predictions = test_model(config)
