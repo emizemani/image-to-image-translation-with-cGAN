@@ -4,7 +4,7 @@ import torch
 import numpy as np
 import matplotlib.pyplot as plt
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from sklearn.manifold import TSNE
+from sklearn.manifold import TSNE, GaussianMixture
 from utils.helper_functions import load_config
 from src.model import PatchGANDiscriminator
 from torch.utils.data import DataLoader
@@ -76,27 +76,49 @@ def analyze_discriminator(config, input_dir, output_dir):
     tsne = TSNE(n_components=2)  # Reduce to 2D
     tsne_results = tsne.fit_transform(all_features)
 
-    # Plot the t-SNE results
-    plt.figure(figsize=(8, 6))
-    scatter = plt.scatter(tsne_results[:, 0], tsne_results[:, 1], c=labels, cmap='coolwarm')
-    plt.title("t-SNE Visualization: Real vs Fake Images")
-    plt.xlabel("t-SNE Component 1")
-    plt.ylabel("t-SNE Component 2")
+    # # Plot the t-SNE results
+    # plt.figure(figsize=(8, 6))
+    # scatter = plt.scatter(tsne_results[:, 0], tsne_results[:, 1], c=labels, cmap='coolwarm')
+    # plt.title("t-SNE Visualization: Real vs Fake Images")
+    # plt.xlabel("t-SNE Component 1")
+    # plt.ylabel("t-SNE Component 2")
 
-    # Add legend to indicate real vs fake
-    plt.legend(handles=scatter.legend_elements()[0], labels=['Fake', 'Real'])
+    # # Add legend to indicate real vs fake
+    # plt.legend(handles=scatter.legend_elements()[0], labels=['Fake', 'Real'])
     
-    plt.savefig("t-sne_visualization.pdf")
+    # plt.savefig("t-sne_visualization.pdf")
 
 
+    # Fit a GMM to the 2D t-SNE results
+    gmm = GaussianMixture(n_components=2, random_state=42)
+    gmm.fit(tsne_results)
 
-    return
+    # Predict cluster assignments
+    clusters = gmm.predict(tsne_results)
 
+    # Optional: Analyze cluster separation
+    num_real = real_features_flat.shape[0]  # Number of real samples
+    real_clusters = clusters[:num_real]    # Clusters assigned to real images
+    fake_clusters = clusters[num_real:]    # Clusters assigned to fake images
 
+    # Visualize t-SNE results with cluster assignments
+    plt.figure(figsize=(8, 6))
 
+    # Plot real images with clusters
+    plt.scatter(tsne_results[:num_real, 0], tsne_results[:num_real, 1], 
+                c=clusters[:num_real], cmap='viridis', marker='o', label='Real', alpha=0.7)
 
+    # Plot fake images with clusters
+    plt.scatter(tsne_results[num_real:, 0], tsne_results[num_real:, 1], 
+                c=clusters[num_real:], cmap='viridis', marker='x', label='Fake', alpha=0.7)
 
+    plt.title("t-SNE Visualization with GMM Clusters")
+    plt.legend()
+    plt.xlabel("t-SNE Dimension 1")
+    plt.ylabel("t-SNE Dimension 2")
+    plt.colorbar(label="Cluster")
 
+    plt.savefig("t-sne_visualization_with_clusters.pdf")
 
 
 if __name__ == "__main__":
