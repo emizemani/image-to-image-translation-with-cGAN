@@ -4,7 +4,8 @@ import torch
 import numpy as np
 import matplotlib.pyplot as plt
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from sklearn.manifold import TSNE, GaussianMixture
+from sklearn.manifold import TSNE
+from sklearn.mixture import GaussianMixture
 from utils.helper_functions import load_config
 from src.model import PatchGANDiscriminator
 from torch.utils.data import DataLoader
