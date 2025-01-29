@@ -13,7 +13,6 @@ from data.dataset import CustomDataset
 from torchvision import transforms
 
 def analyze_discriminator(config, input_dir, output_dir):
-    # load inputs
 
     # load discriminator
     discriminator = PatchGANDiscriminator()
@@ -28,6 +27,7 @@ def analyze_discriminator(config, input_dir, output_dir):
         torch.load(best_discriminator_path, device, weights_only=True)
     )
     discriminator = discriminator.to(device)
+    discriminator.eval()
 
     # Prepare the test dataset and dataloader
     real_dataset = CustomDataset(
@@ -132,6 +132,6 @@ if __name__ == "__main__":
     input_dir = "validation/test4"
 
     # Define output directory
-    output_dir = "validation/test2"
+    output_dir = "explain/test2"
 
     analyze_discriminator(config, input_dir, output_dir)

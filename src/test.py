@@ -104,12 +104,12 @@ if __name__ == "__main__":
     # Load configuration
     config_path = "config.yaml"
     config = load_config(config_path)
-    save_separately = True
+    save_separately = False
 
     # Choose model
-    learning_rate = 0.0003
+    learning_rate = 0.0001
     batch_size = 8
-    lambda_l1 = 10
+    lambda_l1 = 1
 
     config['current_training'] = {}
     config['current_training']['lr'] = learning_rate
@@ -117,7 +117,7 @@ if __name__ == "__main__":
     config['current_training']['lambda_L1'] = lambda_l1
 
     # Define storage directory
-    save_dir = "validation/test4"
+    save_dir = "validation/test5"
 
     # Test the model
     predictions = test_model(config)
