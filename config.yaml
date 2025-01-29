@@ -1,9 +1,9 @@
 training:
-  learning_rates: [0.0001]  # Learning rate for Adam optimizer
-  batch_sizes: [8]    # Example values
+  learning_rates: [0.00001, 0.0001, 0.0003]  # Learning rate for Adam optimizer
+  batch_sizes: [4, 8]    # Example values
   lambda_L1: [10]      # Example values for L1 regularization weight
   
-  epochs: 40        # Example value
+  epochs: 200        # Example value
   start_epoch: 1       # Example value
   
   max_grad_norm: 1.0  # Add this line
@@ -12,10 +12,10 @@ training:
   scheduler:
     factor: 0.5      # Learning rate reduction factor
     patience: 5      # Number of epochs to wait before reducing LR
-    min_lr: 0.00001  # Minimum learning rate
+    min_lr: 0.000001  # Minimum learning rate
 
 # 1: CMP Facade Database; change number for potential other datasets
-dataset: 2
+dataset: 1
 
 data:
   datasets_dir: "data/dataset_"
@@ -31,7 +31,7 @@ logging:
   checkpoint_interval: 20           # Frequency of saving model checkpoints
   validation_interval: 1
   val_samples_interval: 10
-  checkpoint_dir: "checkpoints/prototyp17"
+  checkpoint_dir: "checkpoints/prototyp18"
 
 device:
   use_gpu: true                    # Enable GPU usage if available
