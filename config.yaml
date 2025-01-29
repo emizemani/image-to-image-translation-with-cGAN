@@ -1,9 +1,9 @@
 training:
-  learning_rates: [0.00001, 0.0001]  # Learning rate for Adam optimizer
+  learning_rates: [0.0001]  # Learning rate for Adam optimizer
   batch_sizes: [8]    # Example values
-  lambda_L1: [1, 10]      # Example values for L1 regularization weight
+  lambda_L1: [10]      # Example values for L1 regularization weight
   
-  epochs: 5        # Example value
+  epochs: 40        # Example value
   start_epoch: 1       # Example value
   
   max_grad_norm: 1.0  # Add this line
@@ -31,7 +31,7 @@ logging:
   checkpoint_interval: 20           # Frequency of saving model checkpoints
   validation_interval: 1
   val_samples_interval: 10
-  checkpoint_dir: "checkpoints/prototyp16"
+  checkpoint_dir: "checkpoints/prototyp17"
 
 device:
   use_gpu: true                    # Enable GPU usage if available
