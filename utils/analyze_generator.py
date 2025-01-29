@@ -34,15 +34,20 @@ def analyze_generator(config, input_dir, output_dir, baseline=None, steps=50):
 
     input_image = image.to(device)
 
-    # attributions = integrated_gradients(generator, input_image, baseline, steps)
-    # visualize_integrated_gradients(attributions, input_image)
+    attributions = integrated_gradients(generator, input_image, baseline, steps)
+    visualize_integrated_gradients(attributions, input_image)
 
-    target_layer = generator.encoder[2]
+    # print('shape:', input_image.shape)
 
-    heatmap = grad_cam(generator, target_layer, input_image)
+    # print(dict(generator.named_modules()).keys())
+    # print(generator)
+    # target_layer = generator.encoder[2]
+    # heatmap = grad_cam(generator, target_layer, input_image)
 
     # Overlay heatmap on the image
-    overlay = overlay_heatmap_on_image(heatmap, input_image)
+    # overlay = overlay_heatmap_on_image(heatmap, input_image)
+
+    grad_cam_visualization(generator, input_image, "encoder.0.0")
 
 
 def integrated_gradients(model, input_image, baseline, steps):
@@ -108,107 +113,83 @@ def visualize_integrated_gradients(attributions, input_image):
     plt.axis('off')
     plt.show()
 
-
-def grad_cam(model, target_layer, input_image, target_class=None):
+def grad_cam_visualization(model, input_image, target_layer_name):
     """
-    Implements Grad-CAM for a PyTorch model.
-    
+    Calculates and visualizes Grad-CAM for the given model and input image.
+
     Args:
-        model: The PyTorch model to interpret.
-        target_layer: The name of the layer where Grad-CAM will focus.
-        input_image: The input tensor (1, C, H, W) for which Grad-CAM is computed.
-        target_class: The target class index. If None, uses the class with the highest prediction score.
+        model (torch.nn.Module): The generator model.
+        input_image (torch.Tensor): Input image tensor of shape (3, 256, 256).
+        target_layer_name (str): The name of the layer to compute Grad-CAM for.
 
     Returns:
-        heatmap: The generated Grad-CAM heatmap (H, W).
+        None: Displays the heatmap overlayed on the input image.
     """
-    gradients = []
-    activations = []
-    
-    def backward_hook(module, grad_in, grad_out):
-        gradients.append(grad_out[0])  # Store gradients from backward pass
-
-    def forward_hook(module, input, output):
-        activations.append(output)  # Store feature maps from forward pass
-
-    # Register hooks
-    handle_forward = target_layer.register_forward_hook(forward_hook)
-    handle_backward = target_layer.register_backward_hook(backward_hook)
-    
-    # Forward pass
+    # Ensure model is in evaluation mode
     model.eval()
-    input_image = input_image.unsqueeze(0)
-    output = model(input_image)
-    
-    # Determine the target class
-    if target_class is None:
-        target_class = output.argmax(dim=1)
 
+    # Add batch dimension to input image
+    input_tensor = input_image.unsqueeze(0)  # Shape: (1, 3, 256, 256)
+
+    # Forward hook to get activations
+    activations = {}
+    def forward_hook(module, input, output):
+        activations['value'] = output
+
+    # Backward hook to get gradients
+    gradients = {}
+    def backward_hook(module, grad_in, grad_out):
+        gradients['value'] = grad_out[0]
+
+    # Register hooks to the target layer
+    target_layer = dict(model.named_modules())[target_layer_name]
+    target_layer.register_forward_hook(forward_hook)
+    target_layer.register_backward_hook(backward_hook)
+
+    # Forward pass
+    output = model(input_tensor)  # Assuming model output shape matches input image
+
+    # Create a one-hot encoding for the target output
+    target = output.mean()  # Or any target objective
+    
     # Backward pass
     model.zero_grad()
-    target = output[:, target_class]
     target.backward()
 
-    # Get stored activations and gradients
-    activations = activations[0].detach()
-    gradients = gradients[0].detach()
-
-    # Compute the weights
-    weights = gradients.mean(dim=(2, 3), keepdim=True)  # Global average pooling
+    # Get gradients and activations
+    grads = gradients['value']  # Shape: (1, C, H, W)
+    acts = activations['value']  # Shape: (1, C, H, W)
 
     # Compute Grad-CAM
-    grad_cam_map = (weights * activations).sum(dim=1, keepdim=True)
-    grad_cam_map = F.relu(grad_cam_map)  # ReLU to keep positive importance
-    grad_cam_map = grad_cam_map.squeeze()  # Remove unnecessary dimensions
+    weights = grads.mean(dim=(2, 3), keepdim=True)  # Global average pooling over spatial dimensions
+    grad_cam = (weights * acts).sum(dim=1, keepdim=True)  # Weighted sum of activations
+    grad_cam = F.relu(grad_cam)  # ReLU to remove negative values
 
-    # Normalize the Grad-CAM heatmap
-    grad_cam_map -= grad_cam_map.min()
-    grad_cam_map /= grad_cam_map.max()
-    
-    # Remove hooks
-    handle_forward.remove()
-    handle_backward.remove()
+    # Normalize Grad-CAM
+    grad_cam = grad_cam.squeeze().detach().cpu().numpy()
+    grad_cam = (grad_cam - grad_cam.min()) / (grad_cam.max() - grad_cam.min())  # Normalize to [0, 1]
 
-    return grad_cam_map.cpu().numpy()  # Convert to NumPy array for visualization
+    # Resize Grad-CAM to match input image size
+    resize_transform = transforms.Resize((256, 256))
+    grad_cam = torch.tensor(grad_cam).unsqueeze(0).unsqueeze(0)  # Shape: (1, 1, H, W)
+    grad_cam = resize_transform(grad_cam).squeeze().numpy()  # Resize to (256, 256)
+    grad_cam = np.uint8(grad_cam * 255)  # Scale to [0, 255]
+    grad_cam = np.stack([grad_cam] * 3, axis=-1)  # Convert to 3 channels for RGBg
 
-def overlay_heatmap_on_image(heatmap, original_image, alpha=0.5, colormap=cv2.COLORMAP_JET):
-    """
-    Overlays a heatmap onto the original image.
-    
-    Args:
-        heatmap (numpy.ndarray): The Grad-CAM heatmap, normalized to range [0, 1].
-        original_image (PIL.Image): The original image.
-        alpha (float): Opacity factor for the heatmap overlay (0 = invisible, 1 = opaque).
-        colormap: OpenCV colormap to colorize the heatmap (e.g., cv2.COLORMAP_JET).
-    
-    Returns:
-        overlay (numpy.ndarray): The heatmap overlaid on the original image.
-    """
-    # Convert the original image to a NumPy array
-    original_image = np.array(original_image)
-    
-    # Normalize heatmap to range [0, 255] and apply colormap
-    heatmap = np.uint8(255 * heatmap)  # Scale to 0-255
-    heatmap_color = cv2.applyColorMap(heatmap, colormap)  # Apply colormap
-    
-    # Resize heatmap to match the original image size
-    heatmap_color = cv2.resize(heatmap_color, (original_image.shape[1], original_image.shape[0]))
-    
-    # Convert the original image to BGR format if it's RGB
-    if original_image.shape[-1] == 3 and original_image.dtype == np.uint8:
-        original_image = cv2.cvtColor(original_image, cv2.COLOR_RGB2BGR)
-    
-    # Blend heatmap with the original image
-    overlay = cv2.addWeighted(heatmap_color, alpha, original_image, 1 - alpha, 0)
-    
-    # Convert back to RGB for display
-    overlay = cv2.cvtColor(overlay, cv2.COLOR_BGR2RGB)
-    return overlay
 
-def visualize_grad_cam(overlay):
+    # Convert input image to numpy
+    input_image_np = input_image.detach().cpu().numpy().transpose(1, 2, 0)  # Shape: (256, 256, 3)
+    input_image_np = (input_image_np - input_image_np.min()) / (input_image_np.max() - input_image_np.min())
+
+    # Overlay Grad-CAM heatmap on input image
+    heatmap = plt.cm.jet(grad_cam[:, :, 0] / 255.0)[:, :, :3]  # Convert to RGB heatmap
+    overlay = 0.5 * input_image_np + 0.5 * heatmap  # Blend heatmap and input image
+
+    # Display the overlay
+    plt.figure(figsize=(8, 8))
     plt.imshow(overlay)
     plt.axis('off')
-    plt.savefig("generator.png")
+    plt.show()
 
 if __name__ == "__main__":
 
@@ -217,7 +198,7 @@ if __name__ == "__main__":
     config = load_config(config_path)
 
     # Define input directory
-    input_dir = "validation/test4/0/image_025.png"
+    input_dir = "validation/test4/0/image_200.png"
 
     # Define output directory
     output_dir = "explain/test2"
