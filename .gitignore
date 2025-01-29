@@ -2,6 +2,7 @@ __pycache__/
 .DS_Store
 data/raw/
 pml.sif
+pml2.sif
 data/dataset_2/102flowers
 validation/test1
 validation/test2

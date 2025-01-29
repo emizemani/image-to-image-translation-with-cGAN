@@ -208,7 +208,7 @@ def overlay_heatmap_on_image(heatmap, original_image, alpha=0.5, colormap=cv2.CO
 def visualize_grad_cam(overlay):
     plt.imshow(overlay)
     plt.axis('off')
-    plt.show()
+    plt.savefig("generator.png")
 
 if __name__ == "__main__":
 
