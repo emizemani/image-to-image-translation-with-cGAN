@@ -22,8 +22,8 @@ class FacadeAugmentation:
             #     saturation=0.1,
             #     hue=0.1
             # ),
-            transforms.Resize((286, 286)),
-            transforms.RandomCrop((256, 256)),
+            # transforms.Resize((286, 286)),
+            # transforms.RandomCrop((256, 256)),
             # transforms.
             # transforms.RandomRotation(degrees=(-5, 5), fill=255),
             # transforms.RandomResizedCrop(
