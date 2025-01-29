@@ -1,0 +1,6 @@
+Evaluation Metrics:
+SSIM: 0.3940
+MSE: 0.0451
+Sample SSIM Scores: List of 38 values (not displayed here).
+Average Confidence: 0.4994
+Sample Confidence Scores: List of 38 values (not displayed here).
