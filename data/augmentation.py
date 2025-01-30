@@ -16,6 +16,7 @@ class FacadeAugmentation:
         self.transforms = transforms.Compose([
             # Spatial and color augmentations (on PIL images)
             transforms.RandomHorizontalFlip(p=0.5),
+            transforms.RandomVerticalFlip(p=0.5),
             # transforms.ColorJitter(
             #     brightness=0.1,
             #     contrast=0.1,
@@ -24,12 +25,12 @@ class FacadeAugmentation:
             # transforms.Resize((286, 286)),
             # transforms.RandomCrop((256, 256)),
             # transforms.
-            transforms.RandomRotation(degrees=(-2.5, 2.5), fill=255),
-            transforms.RandomResizedCrop(
-                size=(img_size, img_size),
-                scale=(0.2, 1.0),
+            # transforms.RandomRotation(degrees=(-2.5, 2.5), fill=255),
+            # transforms.RandomResizedCrop(
+            #    size=(img_size, img_size),
+            #     scale=(0.2, 1.0),
                 # ratio=(3/4, 4/3)
-            ),
+            # ),
             # Convert to tensor as the last step
             transforms.ToTensor(),
             # Tensor-specific operations
