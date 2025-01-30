@@ -35,7 +35,7 @@ def analyze_generator(config, input_dir, output_dir, baseline=None, steps=50):
     input_image = image.to(device)
 
     attributions = integrated_gradients(generator, input_image, baseline, steps)
-    visualize_integrated_gradients(attributions, input_image)
+    visualize_integrated_gradients(attributions, input_image, output_dir)
 
     # print('shape:', input_image.shape)
 
@@ -47,7 +47,7 @@ def analyze_generator(config, input_dir, output_dir, baseline=None, steps=50):
     # Overlay heatmap on the image
     # overlay = overlay_heatmap_on_image(heatmap, input_image)
 
-    grad_cam_visualization(generator, input_image, "encoder.0.0")
+    # grad_cam_visualization(generator, input_image, output_dir, "decoder.1.0")
 
 
 def integrated_gradients(model, input_image, baseline, steps):
@@ -79,7 +79,7 @@ def integrated_gradients(model, input_image, baseline, steps):
     attributions = (input_image - baseline) * avg_gradients
     return attributions
 
-def visualize_integrated_gradients(attributions, input_image):
+def visualize_integrated_gradients(attributions, input_image, output_dir):
     """
     Visualizes the Integrated Gradients attributions on the input image.
     
@@ -106,14 +106,12 @@ def visualize_integrated_gradients(attributions, input_image):
     heatmap = cv2.applyColorMap(heatmap, cv2.COLORMAP_JET)
 
     # Overlay heatmap on the image
-    superimposed_image = cv2.addWeighted(input_image, 0.5, heatmap, 0.5, 0)
+    superimposed_image = cv2.addWeighted(input_image, 0, heatmap, 1, 0)
     
     # Plot the image and the heatmap
-    plt.imshow(superimposed_image)
-    plt.axis('off')
-    plt.show()
+    plt.imsave(output_dir, superimposed_image)
 
-def grad_cam_visualization(model, input_image, target_layer_name):
+def grad_cam_visualization(model, input_image, output_dir, target_layer_name):
     """
     Calculates and visualizes Grad-CAM for the given model and input image.
 
@@ -183,13 +181,11 @@ def grad_cam_visualization(model, input_image, target_layer_name):
 
     # Overlay Grad-CAM heatmap on input image
     heatmap = plt.cm.jet(grad_cam[:, :, 0] / 255.0)[:, :, :3]  # Convert to RGB heatmap
-    overlay = 0.5 * input_image_np + 0.5 * heatmap  # Blend heatmap and input image
+    overlay = 0 * input_image_np + 1 * heatmap  # Blend heatmap and input image
 
-    # Display the overlay
-    plt.figure(figsize=(8, 8))
-    plt.imshow(overlay)
-    plt.axis('off')
-    plt.show()
+    # Save overlay
+    plt.imsave(output_dir, overlay)
+
 
 if __name__ == "__main__":
 
@@ -198,12 +194,16 @@ if __name__ == "__main__":
     config = load_config(config_path)
 
     # Define input directory
-    input_dir = "validation/test4/0/image_200.png"
+    input_folder = "validation/test_prototyp21/0"
 
     # Define output directory
-    output_dir = "explain/test2"
+    output_folder = "validation/test_prototyp21/3"
 
-    analyze_generator(config, input_dir, output_dir)
+    for i in range(1, 820):
+        image_name = f"image_{i:03d}.png"
+        input_dir = f"{input_folder}/{image_name}"
+        output_dir = f"{output_folder}/{image_name}"
+        analyze_generator(config, input_dir, output_dir)
 
 
 
