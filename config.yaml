@@ -7,12 +7,12 @@ training:
   start_epoch: 1       # Example value
   
   max_grad_norm: 1.0  # Add this line
-  early_stopping_patience: 50    # Add this line
+  early_stopping_patience: 20    # Add this line
   early_stopping_min_delta: 0.0 # Add this line
   scheduler:
     factor: 0.5      # Learning rate reduction factor
     patience: 5      # Number of epochs to wait before reducing LR
-    min_lr: 0.000001  # Minimum learning rate
+    min_lr: 0.000005  # Minimum learning rate
 
 # 1: CMP Facade Database; change number for potential other datasets
 dataset: 1
@@ -31,7 +31,7 @@ logging:
   checkpoint_interval: 20           # Frequency of saving model checkpoints
   validation_interval: 1
   val_samples_interval: 10
-  checkpoint_dir: "checkpoints/prototyp19"
+  checkpoint_dir: "checkpoints/prototyp20"
 
 device:
   use_gpu: true                    # Enable GPU usage if available
