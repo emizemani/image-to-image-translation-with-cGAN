@@ -101,10 +101,10 @@ def run_analysis(config):
     plt.figure(figsize=(10, 6))
     confidence_scores = [float(score) for score in metrics.get("Sample Confidence Scores", [])]
     sns.histplot(confidence_scores, bins=20)
-    plt.title("Distribution of Confidence Scores")
+    plt.title("Distribution of Discriminator Confidence Scores")
     plt.xlabel("Confidence Score")
     plt.ylabel("Count")
-    plt.savefig(os.path.join(analysis_dir, 'confidence_distribution.png'))
+    plt.savefig(os.path.join(analysis_dir, 'confidence_distribution.pdf'))
     plt.close()
     
     # Use existing plot_generalization_error function

@@ -34,8 +34,8 @@ def analyze_generator(config, input_dir, output_dir, baseline=None, steps=50):
 
     input_image = image.to(device)
 
-    attributions = integrated_gradients(generator, input_image, baseline, steps)
-    visualize_integrated_gradients(attributions, input_image, output_dir)
+    # attributions = integrated_gradients(generator, input_image, baseline, steps)
+    # visualize_integrated_gradients(attributions, input_image, output_dir)
 
     # print('shape:', input_image.shape)
 
@@ -47,7 +47,7 @@ def analyze_generator(config, input_dir, output_dir, baseline=None, steps=50):
     # Overlay heatmap on the image
     # overlay = overlay_heatmap_on_image(heatmap, input_image)
 
-    # grad_cam_visualization(generator, input_image, output_dir, "decoder.1.0")
+    grad_cam_visualization(generator, input_image, output_dir, "final_layer")
 
 
 def integrated_gradients(model, input_image, baseline, steps):
@@ -194,12 +194,12 @@ if __name__ == "__main__":
     config = load_config(config_path)
 
     # Define input directory
-    input_folder = "validation/test_prototyp21/0"
+    input_folder = "validation/test_prototyp20/0"
 
     # Define output directory
-    output_folder = "validation/test_prototyp21/3"
+    output_folder = "validation/test_prototyp20/6"
 
-    for i in range(1, 820):
+    for i in range(1, 39):
         image_name = f"image_{i:03d}.png"
         input_dir = f"{input_folder}/{image_name}"
         output_dir = f"{output_folder}/{image_name}"
