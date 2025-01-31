@@ -5,7 +5,7 @@
 #SBATCH --gpus=1
 #SBATCH --output=/home/pml12/script/r-%j/output.txt
 #SBATCH --error=/home/pml12/script/r-%j/error.txt
-#SBATCH --chdir=/home/pml12/MS2/image-to-image-translation-with-cGAN
+#SBATCH --chdir=/home/pml12/MS3/image-to-image-translation-with-cGAN
 
 container=pml.sif
 
