@@ -12,7 +12,7 @@ from torch.utils.data import DataLoader
 from data.dataset import CustomDataset
 from torchvision import transforms
 
-def analyze_discriminator(config, input_dir, output_dir):
+def analyze_discriminator(config, input_dir, output_file):
 
     # load discriminator
     discriminator = PatchGANDiscriminator()
@@ -73,7 +73,7 @@ def analyze_discriminator(config, input_dir, output_dir):
     # Create labels for visualization (1 for real, 0 for fake)
     labels = np.concatenate([np.ones(real_features_flat.shape[0]), np.zeros(fake_features_flat.shape[0])])
 
-    # Apply t-SNE to reduce the dimensionality of the feature maps
+    # Apply t-SNE
     tsne = TSNE(n_components=2)  # Reduce to 2D
     tsne_results = tsne.fit_transform(all_features)
 
@@ -89,43 +89,8 @@ def analyze_discriminator(config, input_dir, output_dir):
     plt.title("t-SNE Visualization: Real & Fake Images")
     plt.xlabel("t-SNE Component 1")
     plt.ylabel("t-SNE Component 2")
-
-    # Add legend to indicate real vs fake
     plt.legend()
-    
-    plt.savefig("t-sne_visualization_new3.pdf")
-
-
-    # # Fit a GMM to the 2D t-SNE results
-    # gmm = GaussianMixture(n_components=2, random_state=42)
-    # gmm.fit(tsne_results)
-
-    # # Predict cluster assignments
-    # clusters = gmm.predict(tsne_results)
-
-    # # Optional: Analyze cluster separation
-    # num_real = real_features_flat.shape[0]  # Number of real samples
-    # real_clusters = clusters[:num_real]    # Clusters assigned to real images
-    # fake_clusters = clusters[num_real:]    # Clusters assigned to fake images
-
-    # # Visualize t-SNE results with cluster assignments
-    # plt.figure(figsize=(8, 6))
-
-    # # Plot real images with clusters
-    # plt.scatter(tsne_results[:num_real, 0], tsne_results[:num_real, 1], 
-    #             c=clusters[:num_real], cmap='viridis', marker='o', label='Real', alpha=0.7)
-
-    # # Plot fake images with clusters
-    # plt.scatter(tsne_results[num_real:, 0], tsne_results[num_real:, 1], 
-    #             c=clusters[num_real:], cmap='viridis', marker='x', label='Fake', alpha=0.7)
-
-    # plt.title("t-SNE Visualization with GMM Clusters")
-    # plt.legend()
-    # plt.xlabel("t-SNE Dimension 1")
-    # plt.ylabel("t-SNE Dimension 2")
-    # plt.colorbar(label="Cluster")
-
-    # plt.savefig("t-sne_visualization_with_clusters.pdf")
+    plt.savefig(output_file)
 
 
 if __name__ == "__main__":
@@ -135,9 +100,9 @@ if __name__ == "__main__":
     config = load_config(config_path)
 
     # Define input directory
-    input_dir = "validation/test_prototyp21"
+    input_dir = "results/prototyp1"
 
-    # Define output directory
-    output_dir = "explain/test2"
+    # Define output folder and file
+    output_file = "results/prototyp1/tsne.pdf"
 
-    analyze_discriminator(config, input_dir, output_dir)
+    analyze_discriminator(config, input_dir, output_file)

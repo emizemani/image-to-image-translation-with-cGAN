@@ -12,7 +12,7 @@ from utils.helper_functions import load_config
 from torchvision import transforms
 
 
-def analyze_generator(config, input_dir, output_dir, baseline=None, steps=50):
+def analyze_generator(config, input_dir, output_dir, method, target_layer_name, baseline=None, steps=50):
     # load generator
     generator = UNetGenerator()
     
@@ -34,20 +34,11 @@ def analyze_generator(config, input_dir, output_dir, baseline=None, steps=50):
 
     input_image = image.to(device)
 
-    # attributions = integrated_gradients(generator, input_image, baseline, steps)
-    # visualize_integrated_gradients(attributions, input_image, output_dir)
-
-    # print('shape:', input_image.shape)
-
-    # print(dict(generator.named_modules()).keys())
-    # print(generator)
-    # target_layer = generator.encoder[2]
-    # heatmap = grad_cam(generator, target_layer, input_image)
-
-    # Overlay heatmap on the image
-    # overlay = overlay_heatmap_on_image(heatmap, input_image)
-
-    grad_cam_visualization(generator, input_image, output_dir, "final_layer")
+    if method:
+        attributions = integrated_gradients(generator, input_image, baseline, steps)
+        visualize_integrated_gradients(attributions, input_image, output_dir)
+    else:
+        grad_cam_visualization(generator, input_image, output_dir, target_layer_name)
 
 
 def integrated_gradients(model, input_image, baseline, steps):
@@ -68,7 +59,7 @@ def integrated_gradients(model, input_image, baseline, steps):
 
     # Forward pass and backward pass to compute gradients
     output = model(scaled_inputs)
-    loss = F.cross_entropy(output, torch.argmax(output, dim=1))  # Example for classification
+    loss = F.cross_entropy(output, torch.argmax(output, dim=1))
     loss.backward(torch.ones_like(loss), retain_graph=True)
 
     # Compute gradients and average over steps
@@ -80,13 +71,7 @@ def integrated_gradients(model, input_image, baseline, steps):
     return attributions
 
 def visualize_integrated_gradients(attributions, input_image, output_dir):
-    """
-    Visualizes the Integrated Gradients attributions on the input image.
-    
-    Args:
-        attributions: The attribution scores (same shape as input image).
-        input_image: The original input image (tensor of shape (C, H, W)).
-    """
+
     # Convert the input image to numpy for visualization
     input_image = input_image.squeeze().cpu().detach().numpy()
     input_image = np.transpose(input_image, (1, 2, 0))  # CxHxW -> HxWxC
@@ -94,8 +79,8 @@ def visualize_integrated_gradients(attributions, input_image, output_dir):
 
     # Convert attributions to numpy
     attributions = attributions.squeeze().cpu().detach().numpy()
-    attributions = np.abs(attributions)  # Take the absolute value of attributions
-    attributions = attributions.sum(axis=0)  # Sum over channels for RGB images
+    attributions = np.abs(attributions)
+    attributions = attributions.sum(axis=0)
     attributions = cv2.resize(attributions, (input_image.shape[1], input_image.shape[0]))
     
     # Normalize the attributions for visualization
@@ -105,24 +90,11 @@ def visualize_integrated_gradients(attributions, input_image, output_dir):
     heatmap = np.uint8(255 * attributions)
     heatmap = cv2.applyColorMap(heatmap, cv2.COLORMAP_JET)
 
-    # Overlay heatmap on the image
     superimposed_image = cv2.addWeighted(input_image, 0, heatmap, 1, 0)
-    
-    # Plot the image and the heatmap
     plt.imsave(output_dir, superimposed_image)
 
+
 def grad_cam_visualization(model, input_image, output_dir, target_layer_name):
-    """
-    Calculates and visualizes Grad-CAM for the given model and input image.
-
-    Args:
-        model (torch.nn.Module): The generator model.
-        input_image (torch.Tensor): Input image tensor of shape (3, 256, 256).
-        target_layer_name (str): The name of the layer to compute Grad-CAM for.
-
-    Returns:
-        None: Displays the heatmap overlayed on the input image.
-    """
     # Ensure model is in evaluation mode
     model.eval()
 
@@ -145,10 +117,9 @@ def grad_cam_visualization(model, input_image, output_dir, target_layer_name):
     target_layer.register_backward_hook(backward_hook)
 
     # Forward pass
-    output = model(input_tensor)  # Assuming model output shape matches input image
+    output = model(input_tensor)
 
-    # Create a one-hot encoding for the target output
-    target = output.mean()  # Or any target objective
+    target = output.mean()
     
     # Backward pass
     model.zero_grad()
@@ -159,9 +130,9 @@ def grad_cam_visualization(model, input_image, output_dir, target_layer_name):
     acts = activations['value']  # Shape: (1, C, H, W)
 
     # Compute Grad-CAM
-    weights = grads.mean(dim=(2, 3), keepdim=True)  # Global average pooling over spatial dimensions
-    grad_cam = (weights * acts).sum(dim=1, keepdim=True)  # Weighted sum of activations
-    grad_cam = F.relu(grad_cam)  # ReLU to remove negative values
+    weights = grads.mean(dim=(2, 3), keepdim=True)
+    grad_cam = (weights * acts).sum(dim=1, keepdim=True)
+    grad_cam = F.relu(grad_cam)
 
     # Normalize Grad-CAM
     grad_cam = grad_cam.squeeze().detach().cpu().numpy()
@@ -170,8 +141,8 @@ def grad_cam_visualization(model, input_image, output_dir, target_layer_name):
     # Resize Grad-CAM to match input image size
     resize_transform = transforms.Resize((256, 256))
     grad_cam = torch.tensor(grad_cam).unsqueeze(0).unsqueeze(0)  # Shape: (1, 1, H, W)
-    grad_cam = resize_transform(grad_cam).squeeze().numpy()  # Resize to (256, 256)
-    grad_cam = np.uint8(grad_cam * 255)  # Scale to [0, 255]
+    grad_cam = resize_transform(grad_cam).squeeze().numpy() 
+    grad_cam = np.uint8(grad_cam * 255)
     grad_cam = np.stack([grad_cam] * 3, axis=-1)  # Convert to 3 channels for RGBg
 
 
@@ -197,13 +168,23 @@ if __name__ == "__main__":
     input_folder = "validation/test_prototyp20/0"
 
     # Define output directory
-    output_folder = "validation/test_prototyp20/6"
+    output_folder = "validation/test_prototyp20/7"
 
+    # Define IG: True; Grad-CAM: False
+    method = True
+
+    # Define target layer name (Grad-CAM)
+    target_layer_name = "final_layer"
+
+    # Define steps (IG)
+    steps = 50
+
+    # loop for multiple pictures
     for i in range(1, 39):
         image_name = f"image_{i:03d}.png"
         input_dir = f"{input_folder}/{image_name}"
         output_dir = f"{output_folder}/{image_name}"
-        analyze_generator(config, input_dir, output_dir)
+        analyze_generator(config, input_dir, output_dir, method, target_layer_name, steps=steps)
 
 
 
