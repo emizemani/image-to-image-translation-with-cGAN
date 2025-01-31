@@ -1,2 +1,0 @@
-Total training time: 00:15:24
-Total seconds: 924.01

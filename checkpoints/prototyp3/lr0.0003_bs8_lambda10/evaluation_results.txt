@@ -1,4 +1,0 @@
-Evaluation Metrics:
-SSIM: 0.3769
-MSE: 0.0444
-Sample SSIM Scores: List of 38 values (not displayed here).

@@ -1,3 +1,0 @@
-larning rate: 0.0003
-batch size: 4
-lambda l1: 10

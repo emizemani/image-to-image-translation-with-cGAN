@@ -15,7 +15,7 @@ training:
     min_lr: 0.000005  # Minimum learning rate
 
 # 1: CMP Facade Database; change number for potential other datasets
-dataset: 2
+dataset: 1
 
 data:
   datasets_dir: "data/dataset_"
@@ -31,7 +31,7 @@ logging:
   checkpoint_interval: 20           # Frequency of saving model checkpoints
   validation_interval: 1
   val_samples_interval: 10
-  checkpoint_dir: "checkpoints/prototyp21"
+  checkpoint_dir: "checkpoints/prototyp20"
 
 device:
   use_gpu: true                    # Enable GPU usage if available
