@@ -29,13 +29,11 @@ class NumpyEncoder(json.JSONEncoder):
             return obj.tolist()
         return super(NumpyEncoder, self).default(obj)
 
-def run_analysis():
+def run_analysis(config):
     """
     Run comprehensive analysis of the model and generate report data.
     This is a post-training analysis tool that uses the best model from train_apply.py
     """
-    # Load configuration
-    config = load_config()
     
     # Set up output directory for analysis results
     analysis_dir = os.path.join(config['logging']['checkpoint_dir'], 'analysis')
@@ -51,8 +49,8 @@ def run_analysis():
     discriminator = PatchGANDiscriminator()
     
     # Use the same paths as in train_apply.py
-    best_model_path = os.path.join(config['logging']['checkpoint_dir'], 'generator_latest.pth')
-    best_discriminator_path = os.path.join(config['logging']['checkpoint_dir'], 'discriminator_latest.pth')
+    best_model_path = os.path.join(config['logging']['checkpoint_dir'], 'best_model/generator_latest.pth')
+    best_discriminator_path = os.path.join(config['logging']['checkpoint_dir'], 'best_model/discriminator_latest.pth')
     
     # Load with appropriate device mapping
     generator.load_state_dict(
@@ -75,7 +73,6 @@ def run_analysis():
     test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False)
     
     # Run enhanced evaluation
-    print("Running enhanced evaluation...")
     start_time = time.time()
     metrics = enhanced_evaluation(generator, discriminator, test_loader, config)
     evaluation_time = time.time() - start_time
@@ -104,10 +101,10 @@ def run_analysis():
     plt.figure(figsize=(10, 6))
     confidence_scores = [float(score) for score in metrics.get("Sample Confidence Scores", [])]
     sns.histplot(confidence_scores, bins=20)
-    plt.title("Distribution of Confidence Scores")
+    plt.title("Distribution of Discriminator Confidence Scores")
     plt.xlabel("Confidence Score")
     plt.ylabel("Count")
-    plt.savefig(os.path.join(analysis_dir, 'confidence_distribution.png'))
+    plt.savefig(os.path.join(analysis_dir, 'confidence_distribution.pdf'))
     plt.close()
     
     # Use existing plot_generalization_error function
@@ -131,4 +128,5 @@ def run_analysis():
     print("- attributions/[case]_guided_gradcam.png")
 
 if __name__ == "__main__":
-    run_analysis()
+    config = load_config()
+    run_analysis(config)
