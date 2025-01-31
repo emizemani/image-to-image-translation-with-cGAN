@@ -61,8 +61,6 @@ def analyze_discriminator(config, input_dir, output_file):
 
             fake_features = discriminator(fake_B, real_A, return_features=True)
 
-    print('1')
-
     # Flatten the feature maps for both real and fake images
     real_features_flat = real_features.view(real_features.size(0), -1).detach().cpu().numpy()
     fake_features_flat = fake_features.view(fake_features.size(0), -1).detach().cpu().numpy()

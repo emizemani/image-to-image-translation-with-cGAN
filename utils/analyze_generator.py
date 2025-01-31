@@ -165,13 +165,13 @@ if __name__ == "__main__":
     config = load_config(config_path)
 
     # Define input directory
-    input_folder = "validation/test_prototyp20/0"
+    input_folder = "results/prototyp1/0"
 
     # Define output directory
-    output_folder = "validation/test_prototyp20/7"
+    output_folder = "results/prototyp1/7"
 
     # Define IG: True; Grad-CAM: False
-    method = True
+    method = False
 
     # Define target layer name (Grad-CAM)
     target_layer_name = "final_layer"
@@ -185,6 +185,3 @@ if __name__ == "__main__":
         input_dir = f"{input_folder}/{image_name}"
         output_dir = f"{output_folder}/{image_name}"
         analyze_generator(config, input_dir, output_dir, method, target_layer_name, steps=steps)
-
-
-
